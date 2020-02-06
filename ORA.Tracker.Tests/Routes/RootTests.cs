@@ -18,33 +18,54 @@ namespace ORA.Tracker.Routes.Tests
             var testee = new Root();
 
             HttpListenerContext context = await Generator.GenerateListenerContext("/", HttpMethod.Get);
-            testee.HandleRequest(context.Request, context.Response).Should().BeTrue();
+            testee.HandleRequest(context.Request, context.Response)
+                .Should()
+                .Be("Hey welcome to '/'");
         }
 
         [Fact]
         public async void WhenUnhandledMethodRequest_ShouldReturnFalse()
         {
             var testee = new Root();
+            string notFound = "{\"message\":\"Not Found\",\"documentation_url\":\"https://ora.crabwave.com/documentation\"}";
 
             HttpListenerContext context;
 
             context = await Generator.GenerateListenerContext("/", HttpMethod.Head);
-            testee.HandleRequest(context.Request, context.Response).Should().BeFalse();
+            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+                .Should()
+                .Throw<HttpListenerException>()
+                .WithMessage(notFound);
 
             context = await Generator.GenerateListenerContext("/", HttpMethod.Post);
-            testee.HandleRequest(context.Request, context.Response).Should().BeFalse();
+            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+                .Should()
+                .Throw<HttpListenerException>()
+                .WithMessage(notFound);
 
             context = await Generator.GenerateListenerContext("/", HttpMethod.Put);
-            testee.HandleRequest(context.Request, context.Response).Should().BeFalse();
+            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+                .Should()
+                .Throw<HttpListenerException>()
+                .WithMessage(notFound);
 
             context = await Generator.GenerateListenerContext("/", HttpMethod.Delete);
-            testee.HandleRequest(context.Request, context.Response).Should().BeFalse();
+            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+                .Should()
+                .Throw<HttpListenerException>()
+                .WithMessage(notFound);
 
             context = await Generator.GenerateListenerContext("/", HttpMethod.Options);
-            testee.HandleRequest(context.Request, context.Response).Should().BeFalse();
+            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+                .Should()
+                .Throw<HttpListenerException>()
+                .WithMessage(notFound);
 
             context = await Generator.GenerateListenerContext("/", HttpMethod.Trace);
-            testee.HandleRequest(context.Request, context.Response).Should().BeFalse();
+            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+                .Should()
+                .Throw<HttpListenerException>()
+                .WithMessage(notFound);
         }
     }
 }

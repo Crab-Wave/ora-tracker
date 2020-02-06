@@ -8,9 +8,10 @@ namespace ORA.Tracker.Tests.Models
     public class ErrorTests
     {
         [Theory]
-        [InlineData("Message")]
-        [InlineData("Not Found")]
         [InlineData("")]
+        [InlineData("Not Found")]
+        [InlineData("Method Not Allowed")]
+        [InlineData("Unknown Error")]
         public void WhenCreatingError_ShouldHaveMatchingMessageField(string message)
         {
             var testee = new Error(message);
@@ -20,14 +21,16 @@ namespace ORA.Tracker.Tests.Models
         }
 
         [Theory]
-        [InlineData("Message")]
-        [InlineData("Not Found")]
         [InlineData("")]
+        [InlineData("Not Found")]
+        [InlineData("Method Not Allowed")]
+        [InlineData("Unknown Error")]
         public void WhenConvertingToString_ShouldMatchMessage(string message)
         {
             var testee = new Error(message);
 
-            testee.ToString().Should().Be("{\"message\":\"" + message + "\",\"documentation_url\":\"https://ora.crabwave.com/documentation\"}");
+            testee.ToString().Should().Be(
+                "{\"message\":\"" + message + "\",\"documentation_url\":\"https://ora.crabwave.com/documentation\"}");
         }
     }
 }
