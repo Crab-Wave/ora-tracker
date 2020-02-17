@@ -17,6 +17,6 @@ namespace ORA.Tracker.Models
             this.documentation_url = "https://ora.crabwave.com/documentation";
         }
 
-        public override string ToString() => JsonSerializer.Serialize(this);
+        public override string ToString() => JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
     }
 }
