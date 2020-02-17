@@ -29,8 +29,8 @@ namespace ORA.Tracker.Tests.Models
         {
             var testee = new Error(message);
 
-            testee.ToString().Should().Be(
-                "{\r\n  \"message\": \"" + message + "\",\r\n  \"documentation_url\": \"https://ora.crabwave.com/documentation\"\r\n}");
+            testee.ToString().Replace("\r", "").Should().Be(
+                "{\n  \"message\": \"" + message + "\",\n  \"documentation_url\": \"https://ora.crabwave.com/documentation\"\n}");
         }
     }
 }
