@@ -27,7 +27,7 @@ namespace ORA.Tracker.Routes.Tests
         public async void WhenUnhandledMethodRequest_ShouldReturnFalse()
         {
             var testee = new Root();
-            string notFound = "{\"message\":\"Not Found\",\"documentation_url\":\"https://ora.crabwave.com/documentation\"}";
+            string notFound = "{\r\n  \"message\": \"Not Found\",\r\n  \"documentation_url\": \"https://ora.crabwave.com/documentation\"\r\n}";
 
             HttpListenerContext context;
 

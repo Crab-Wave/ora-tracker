@@ -30,7 +30,7 @@ namespace ORA.Tracker.Tests.Models
             var testee = new Error(message);
 
             testee.ToString().Should().Be(
-                "{\"message\":\"" + message + "\",\"documentation_url\":\"https://ora.crabwave.com/documentation\"}");
+                "{\r\n  \"message\": \"" + message + "\",\r\n  \"documentation_url\": \"https://ora.crabwave.com/documentation\"\r\n}");
         }
     }
 }
