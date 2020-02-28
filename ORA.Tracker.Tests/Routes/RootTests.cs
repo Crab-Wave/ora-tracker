@@ -26,18 +26,24 @@ namespace ORA.Tracker.Routes.Tests
         }
 
         [Fact]
+        public async void WhenHeadRequest_ShouldReturnEmptyBody()
+        {
+            var testee = new Root();
+            HttpListenerContext context;
+
+            context = await Generator.GenerateListenerContext(routePath, HttpMethod.Head);
+            testee.HandleRequest(context.Request, context.Response)
+                .Should()
+                .Be("");
+        }
+
+        [Fact]
         public async void WhenUnhandledMethodRequest_ShouldReturnNotFound()
         {
             var testee = new Root();
             HttpListenerContext context;
 
             string notFound = "{\n  \"message\": \"Not Found\",\n  \"documentation_url\": \"https://ora.crabwave.com/documentation\"\n}";
-
-            context = await Generator.GenerateListenerContext(routePath, HttpMethod.Head);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Replace("\r", "").Equals(notFound));
 
             context = await Generator.GenerateListenerContext(routePath, HttpMethod.Post);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
@@ -58,12 +64,6 @@ namespace ORA.Tracker.Routes.Tests
                 .Where(e => e.Message.Replace("\r", "").Equals(notFound));
 
             context = await Generator.GenerateListenerContext(routePath, HttpMethod.Options);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Replace("\r", "").Equals(notFound));
-
-            context = await Generator.GenerateListenerContext(routePath, HttpMethod.Trace);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()

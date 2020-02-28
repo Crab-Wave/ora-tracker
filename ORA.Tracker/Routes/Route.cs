@@ -21,8 +21,7 @@ namespace ORA.Tracker.Routes
                 { "POST", this.post },
                 { "PUT", this.put },
                 { "DELETE", this.delete },
-                { "OPTIONS", this.options },
-                { "TRACE", this.trace }
+                { "OPTIONS", this.options }
             };
         }
 
@@ -39,7 +38,7 @@ namespace ORA.Tracker.Routes
             => throw new HttpListenerException(404, Error.NotFound);
 
         protected virtual string head(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFound);
+            => "";      // Head should return empty body
 
         protected virtual string post(HttpListenerRequest request, HttpListenerResponse response)
             => throw new HttpListenerException(404, Error.NotFound);
@@ -51,9 +50,6 @@ namespace ORA.Tracker.Routes
             => throw new HttpListenerException(404, Error.NotFound);
 
         protected virtual string options(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFound);
-
-        protected virtual string trace(HttpListenerRequest request, HttpListenerResponse response)
             => throw new HttpListenerException(404, Error.NotFound);
     }
 }

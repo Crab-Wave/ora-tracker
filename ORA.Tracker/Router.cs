@@ -1,6 +1,8 @@
 using System;
 using System.Net;
+using System.Net.Http;
 using System.Collections.Generic;
+using System.IO;
 
 using ORA.Tracker.Routes;
 using ORA.Tracker.Models;
@@ -45,9 +47,10 @@ namespace ORA.Tracker
             }
             else
             {
-                context.Response.StatusCode = 404;
-                body = Error.NotFound;
                 // TODO: Log this
+                context.Response.StatusCode = 404;
+                if (context.Request.HttpMethod != HttpMethod.Head.ToString())
+                    body = Error.NotFound;
             }
 
             this.sendResponse(body, context.Response);
@@ -60,7 +63,7 @@ namespace ORA.Tracker
             byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseContent);
 
             response.ContentLength64 = buffer.Length;
-            System.IO.Stream output = response.OutputStream;
+            Stream output = response.OutputStream;
 
             try
             {
@@ -74,6 +77,12 @@ namespace ORA.Tracker
                 return false;
             }
             catch (HttpListenerException e)
+            {
+                // TODO: Log this
+                Console.WriteLine(e.Message);
+                return false;
+            }
+            catch (ProtocolViolationException e)
             {
                 // TODO: Log this
                 Console.WriteLine(e.Message);
