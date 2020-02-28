@@ -1,13 +1,17 @@
+using System;
 using System.Text.Json;
 
 namespace ORA.Tracker.Models
 {
     public class Node
     {
-        public string id { get; set; }
+        public Guid id { get; set; }
         public string current_ip { get; set; }
 
-        public Node(string id, string current_ip)
+        public Node(string current_ip)
+            : this(new Guid(), current_ip) {}
+
+        public Node(Guid id, string current_ip)
         {
             this.id = id;
             this.current_ip = current_ip;
