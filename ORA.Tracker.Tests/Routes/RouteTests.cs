@@ -13,7 +13,7 @@ namespace ORA.Tracker.Routes.Tests
         private static readonly string routePath = "/route";
 
         [Fact]
-        public async void WhenHeadRequest_ShouldReturnEmptyBody()
+        public async void WhenHeadRequest_ShouldReturn_EmptyBody()
         {
             var testee = new MockRoute();
             HttpListenerContext context;

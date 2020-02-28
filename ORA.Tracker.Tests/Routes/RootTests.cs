@@ -14,7 +14,7 @@ namespace ORA.Tracker.Routes.Tests
         private static readonly string routePath = "/";
 
         [Fact]
-        public async void WhenHandledMethodRequest_ShouldReturnWelcomeString()
+        public async void WhenHandledMethodRequest_ShouldReturn_WelcomeString()
         {
             var testee = new Root();
             HttpListenerContext context;
@@ -26,7 +26,7 @@ namespace ORA.Tracker.Routes.Tests
         }
 
         [Fact]
-        public async void WhenHeadRequest_ShouldReturnEmptyBody()
+        public async void WhenHeadRequest_ShouldReturn_EmptyBody()
         {
             var testee = new Root();
             HttpListenerContext context;
@@ -38,7 +38,7 @@ namespace ORA.Tracker.Routes.Tests
         }
 
         [Fact]
-        public async void WhenUnhandledMethodRequest_ShouldReturnNotFound()
+        public async void WhenUnhandledMethodRequest_Throws_HttpListenerException()
         {
             var testee = new Root();
             HttpListenerContext context;
