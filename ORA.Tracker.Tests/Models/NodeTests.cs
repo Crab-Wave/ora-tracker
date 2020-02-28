@@ -16,7 +16,7 @@ namespace ORA.Tracker.Tests.Models
             var testee = new Node(uid, current_ip);
 
             testee.uid.Should().Be(uid);
-            testee.current_ip.Shoud().Be(current_ip);
+            testee.current_ip.Should().Be(current_ip);
         }
 
         [Theory]
