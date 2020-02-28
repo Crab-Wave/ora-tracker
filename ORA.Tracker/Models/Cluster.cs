@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Text.Json;
 using System.Collections.Generic;
 
@@ -24,6 +25,8 @@ namespace ORA.Tracker.Models
             this.files = files;
         }
 
-        public override string ToString() => JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+        public override string ToString() => Encoding.UTF8.GetString(this.ToBytes());
+
+        public byte[] ToBytes() => JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions { WriteIndented = true });
     }
 }

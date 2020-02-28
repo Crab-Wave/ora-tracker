@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 
 namespace ORA.Tracker.Routes
 {
@@ -7,7 +8,7 @@ namespace ORA.Tracker.Routes
         public Root()
             : base("/") { }
 
-        protected override string get(HttpListenerRequest request, HttpListenerResponse response)
-            => "Hey welcome to '/'";
+        protected override byte[] get(HttpListenerRequest request, HttpListenerResponse response)
+            => Encoding.UTF8.GetBytes("Hey welcome to '/'");
     }
 }

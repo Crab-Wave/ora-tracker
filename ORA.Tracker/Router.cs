@@ -23,7 +23,7 @@ namespace ORA.Tracker
         public void HandleRequest(HttpListenerContext context)
         {
             string path = context.Request.RawUrl;
-            string body = new String("");
+            byte[] body = new byte[0];
 
             if (this.isRouteHandled(path))
             {
@@ -34,13 +34,13 @@ namespace ORA.Tracker
                 catch (HttpListenerException e)
                 {
                     context.Response.StatusCode = e.ErrorCode;
-                    body = e.Message;
+                    body = System.Text.Encoding.UTF8.GetBytes(e.Message);
                     // TODO: log this
                 }
                 catch (System.Exception e)
                 {
                     context.Response.StatusCode = 520;
-                    body = Error.UnknownError;
+                    body = Error.UnknownErrorBytes;
                     // TODO: log this
                     Console.WriteLine(e.Message);
                 }
@@ -50,7 +50,7 @@ namespace ORA.Tracker
                 // TODO: Log this
                 context.Response.StatusCode = 404;
                 if (context.Request.HttpMethod != HttpMethod.Head.ToString())
-                    body = Error.NotFound;
+                    body = Error.NotFoundBytes;
             }
 
             this.sendResponse(body, context.Response);
@@ -58,9 +58,9 @@ namespace ORA.Tracker
 
         private bool isRouteHandled(string path) => this.routes.ContainsKey(path);
 
-        private bool sendResponse(string responseContent, HttpListenerResponse response)
+        private bool sendResponse(byte[] buffer, HttpListenerResponse response)
         {
-            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseContent);
+            //  buffer = System.Text.Encoding.UTF8.GetBytes(responseContent);
 
             response.ContentLength64 = buffer.Length;
             Stream output = response.OutputStream;

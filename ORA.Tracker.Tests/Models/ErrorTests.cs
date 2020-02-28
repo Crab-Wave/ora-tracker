@@ -1,3 +1,4 @@
+using System.Text;
 using Xunit;
 using FluentAssertions;
 
@@ -22,6 +23,23 @@ namespace ORA.Tracker.Tests.Models
              +  "  \"documentation_url\": \"https://ora.crabwave.com/documentation\"\n"
              +  "}"
             );
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("Not Found")]
+        [InlineData("Method Not Allowed")]
+        [InlineData("Unknown Error")]
+        public void WhenConvertingToBytes_ShouldMatchMessage(string message)
+        {
+            var testee = new Error(message);
+
+            testee.ToBytes().Should().Equals(Encoding.UTF8.GetBytes(
+                "{\n"
+             + $"  \"message\": \"{message}\",\n"
+             +  "  \"documentation_url\": \"https://ora.crabwave.com/documentation\"\n"
+             +  "}"
+            ));
         }
     }
 }

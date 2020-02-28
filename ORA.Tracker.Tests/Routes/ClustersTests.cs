@@ -22,17 +22,17 @@ namespace ORA.Tracker.Routes.Tests
             context = await listener.GenerateContext(routePath, HttpMethod.Get);
             testee.HandleRequest(context.Request, context.Response)
                 .Should()
-                .Be("");
+                .Equals(new byte[0]);
 
             context = await listener.GenerateContext(routePath, HttpMethod.Post);
             testee.HandleRequest(context.Request, context.Response)
                 .Should()
-                .Be("");
+                .Equals(new byte[0]);
 
             context = await listener.GenerateContext(routePath, HttpMethod.Delete);
             testee.HandleRequest(context.Request, context.Response)
                 .Should()
-                .Be("");
+                .Equals(new byte[0]);
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace ORA.Tracker.Routes.Tests
             context = await listener.GenerateContext(routePath, HttpMethod.Head);
             testee.HandleRequest(context.Request, context.Response)
                 .Should()
-                .Be("");
+                .Equals(new byte[0]);
         }
 
         [Fact]

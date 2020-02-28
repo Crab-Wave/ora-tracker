@@ -14,7 +14,7 @@ namespace ORA.Tracker.Routes.Tests
         private static readonly string routePath = "/";
 
         [Fact]
-        public async void WhenHandledMethodRequest_ShouldReturn_WelcomeString()
+        public async void WhenHandledMethodRequest_ShouldReturn_WelcomeMessage()
         {
             var testee = new Root();
             HttpListenerContext context;
@@ -22,7 +22,7 @@ namespace ORA.Tracker.Routes.Tests
             context = await listener.GenerateContext(routePath, HttpMethod.Get);
             testee.HandleRequest(context.Request, context.Response)
                 .Should()
-                .Be("Hey welcome to '/'");
+                .Equals(System.Text.Encoding.UTF8.GetBytes("Hey welcome to '/'"));
         }
 
         [Fact]
@@ -34,7 +34,7 @@ namespace ORA.Tracker.Routes.Tests
             context = await listener.GenerateContext(routePath, HttpMethod.Head);
             testee.HandleRequest(context.Request, context.Response)
                 .Should()
-                .Be("");
+                .Equals(new byte[0]);
         }
 
         [Fact]

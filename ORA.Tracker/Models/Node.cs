@@ -18,5 +18,7 @@ namespace ORA.Tracker.Models
         }
 
         public override string ToString() => JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+
+        public byte[] ToBytes() => JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions { WriteIndented = true });
     }
 }

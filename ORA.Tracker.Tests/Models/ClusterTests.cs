@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using Xunit;
@@ -10,20 +11,37 @@ namespace ORA.Tracker.Tests.Models
 {
     public class ClusterTests
     {
-
         [Theory]
         [ClassData(typeof(TestData))]
-        public void WhenConvertingToString_ShouldMatch(string name, List<string> members, List<string> admins, List<string> files)
+        public void WhenConvertingToBytes_ShouldMatch(string name, List<string> members, List<string> admins, List<string> files)
         {
             var id = new Guid();
             var testee = new Cluster(id, name, members, admins, files);
 
-            testee.ToString().Replace("\r", "").Should().Be(
+            testee.ToBytes().Should().Equals(Encoding.UTF8.GetBytes(
                 "{\n"
              + $"  \"id\": \"{id.ToString()}\",\n"
              + $"  \"name\": \"{name}\",\n"
+             + $"  \"members\": {StringListToIndentedString(members)},\n"
+             + $"  \"admins\": {StringListToIndentedString(admins)},\n"
+             + $"  \"files\": {StringListToIndentedString(files)}\n"
              +  "}"
-            );
+            ));
+        }
+
+        private static string StringListToIndentedString(List<string> l)
+        {
+            if (l.Count == 0)
+                return "[]";
+
+            string s = "[\n";
+            for (int i = 0; i < l.Count-1; i++)
+            {
+                s += $"    \"{l[i]}\",\n";
+            }
+
+            s += $"    \"{l[l.Count - 1]}\"\n  ]";
+            return s;
         }
     }
 
@@ -34,7 +52,12 @@ namespace ORA.Tracker.Tests.Models
         public IEnumerator<object[]> GetEnumerator()
         {
             yield return new object[] { "", emptyStringList, emptyStringList, emptyStringList };
-            yield return new object[] { "TestCluster", emptyStringList, emptyStringList, emptyStringList };
+            yield return new object[] {
+                "TestCluster",
+                new List<string>() { "TrAyZeN", "treefortwo", "Adamaq01", "Tats" },
+                new List<string>() { "Léo", "Raffaël", "Adam", "Pierre-Corentin" },
+                new List<string>() { "ORA.exe", "hello.c" }
+            };
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

@@ -22,7 +22,7 @@ namespace ORA.Tracker.Routes.Tests
             context = await listener.GenerateContext(routePath, HttpMethod.Head);
             testee.HandleRequest(context.Request, context.Response)
                 .Should()
-                .Be("");
+                .Equals(new byte[0]);
         }
 
         [Fact]

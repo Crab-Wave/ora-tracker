@@ -8,13 +8,13 @@ namespace ORA.Tracker.Routes
 {
     public abstract class Route
     {
-        private Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, string>> callbacks;
+        private Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, byte[]>> callbacks;
         public string Path { get; }
 
         public Route(string path)
         {
             this.Path = path;
-            this.callbacks = new Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, string>>
+            this.callbacks = new Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, byte[]>>
             {
                 { "GET", this.get },
                 { "HEAD", this.head },
@@ -25,7 +25,7 @@ namespace ORA.Tracker.Routes
             };
         }
 
-        public string HandleRequest(HttpListenerRequest request, HttpListenerResponse response)
+        public byte[] HandleRequest(HttpListenerRequest request, HttpListenerResponse response)
         {
             string httpMethod = request.HttpMethod;
 
@@ -34,22 +34,22 @@ namespace ORA.Tracker.Routes
             throw new HttpListenerException(405, Error.MethodNotAllowed);
         }
 
-        protected virtual string get(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFound);
+        protected virtual byte[] get(HttpListenerRequest request, HttpListenerResponse response)
+            => throw new HttpListenerException(404, Error.NotFoundString);
 
-        protected virtual string head(HttpListenerRequest request, HttpListenerResponse response)
-            => "";      // Head should return empty body
+        protected virtual byte[] head(HttpListenerRequest request, HttpListenerResponse response)
+            => new byte[0];      // Head should return empty body
 
-        protected virtual string post(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFound);
+        protected virtual byte[] post(HttpListenerRequest request, HttpListenerResponse response)
+            => throw new HttpListenerException(404, Error.NotFoundString);
 
-        protected virtual string put(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFound);
+        protected virtual byte[] put(HttpListenerRequest request, HttpListenerResponse response)
+            => throw new HttpListenerException(404, Error.NotFoundString);
 
-        protected virtual string delete(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFound);
+        protected virtual byte[] delete(HttpListenerRequest request, HttpListenerResponse response)
+            => throw new HttpListenerException(404, Error.NotFoundString);
 
-        protected virtual string options(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFound);
+        protected virtual byte[] options(HttpListenerRequest request, HttpListenerResponse response)
+            => throw new HttpListenerException(404, Error.NotFoundString);
     }
 }

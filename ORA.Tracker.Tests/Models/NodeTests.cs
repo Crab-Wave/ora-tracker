@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Xunit;
 using FluentAssertions;
 
@@ -22,6 +23,22 @@ namespace ORA.Tracker.Tests.Models
              + $"\n  \"current_ip\": \"{current_ip}\"\n"
              +  "}"
             );
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("127.0.0.1")]
+        [InlineData("8.8.8.8")]
+        public void WhenConvertingToBytes_ShouldMatch(string current_ip)
+        {
+            var testee = new Node(current_ip);
+
+            testee.ToBytes().Should().Equals(Encoding.UTF8.GetBytes(
+                "{\n"
+             + $"  \"id\": \"{testee.id.ToString()}\","
+             + $"\n  \"current_ip\": \"{current_ip}\"\n"
+             +  "}"
+            ));
         }
     }
 }

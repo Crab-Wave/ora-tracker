@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 
 namespace ORA.Tracker.Routes
@@ -7,19 +8,21 @@ namespace ORA.Tracker.Routes
         public Clusters()
             : base("/clusters") { }
 
-        protected override string get(HttpListenerRequest request, HttpListenerResponse response)
+        protected override byte[] get(HttpListenerRequest request, HttpListenerResponse response)
         {
-            return "";
+            return new byte[0];
         }
 
-        protected override string post(HttpListenerRequest request, HttpListenerResponse response)
+        // create cluster return id as json
+        protected override byte[] post(HttpListenerRequest request, HttpListenerResponse response)
         {
-            return "";
+            Guid id = new Guid();
+            return new byte[0];
         }
 
-        protected override string delete(HttpListenerRequest request, HttpListenerResponse response)
+        protected override byte[] delete(HttpListenerRequest request, HttpListenerResponse response)
         {
-            return "";
+            return new byte[0];
         }
     }
 }
