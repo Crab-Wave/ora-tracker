@@ -10,7 +10,7 @@ namespace ORA.Tracker.Routes.Tests
 {
     public class RootTests
     {
-        private static readonly HttpClient client = new HttpClient();
+        private static readonly MockupListener listener = new MockupListener(15301);
         private static readonly string routePath = "/";
 
         [Fact]
@@ -19,7 +19,7 @@ namespace ORA.Tracker.Routes.Tests
             var testee = new Root();
             HttpListenerContext context;
 
-            context = await Generator.GenerateListenerContext(routePath, HttpMethod.Get);
+            context = await listener.GenerateContext(routePath, HttpMethod.Get);
             testee.HandleRequest(context.Request, context.Response)
                 .Should()
                 .Be("Hey welcome to '/'");
@@ -31,7 +31,7 @@ namespace ORA.Tracker.Routes.Tests
             var testee = new Root();
             HttpListenerContext context;
 
-            context = await Generator.GenerateListenerContext(routePath, HttpMethod.Head);
+            context = await listener.GenerateContext(routePath, HttpMethod.Head);
             testee.HandleRequest(context.Request, context.Response)
                 .Should()
                 .Be("");
@@ -45,25 +45,25 @@ namespace ORA.Tracker.Routes.Tests
 
             string notFound = "{\n  \"message\": \"Not Found\",\n  \"documentation_url\": \"https://ora.crabwave.com/documentation\"\n}";
 
-            context = await Generator.GenerateListenerContext(routePath, HttpMethod.Post);
+            context = await listener.GenerateContext(routePath, HttpMethod.Post);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Replace("\r", "").Equals(notFound));
 
-            context = await Generator.GenerateListenerContext(routePath, HttpMethod.Put);
+            context = await listener.GenerateContext(routePath, HttpMethod.Put);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Replace("\r", "").Equals(notFound));
 
-            context = await Generator.GenerateListenerContext(routePath, HttpMethod.Delete);
+            context = await listener.GenerateContext(routePath, HttpMethod.Delete);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Replace("\r", "").Equals(notFound));
 
-            context = await Generator.GenerateListenerContext(routePath, HttpMethod.Options);
+            context = await listener.GenerateContext(routePath, HttpMethod.Options);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
