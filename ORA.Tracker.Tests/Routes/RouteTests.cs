@@ -14,9 +14,9 @@ namespace ORA.Tracker.Routes.Tests
         public async void WhenUnhandledMethod_Throws_HttpListenerException()
         {
             var testee = new MockRoute();
-            string notFound = "{\n  \"message\": \"Not Found\",\n  \"documentation_url\": \"https://ora.crabwave.com/documentation\"\n}";
-
             HttpListenerContext context;
+
+            string notFound = "{\n  \"message\": \"Not Found\",\n  \"documentation_url\": \"https://ora.crabwave.com/documentation\"\n}";
 
             context = await Generator.GenerateListenerContext("/route", HttpMethod.Get);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
