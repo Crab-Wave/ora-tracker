@@ -4,12 +4,12 @@ namespace ORA.Tracker.Models
 {
     public class Node
     {
-        public string uid { get; set; }
+        public string id { get; set; }
         public string current_ip { get; set; }
 
-        public Node(string uid, string current_ip)
+        public Node(string id, string current_ip)
         {
-            this.uid = uid;
+            this.id = id;
             this.current_ip = current_ip;
         }
 

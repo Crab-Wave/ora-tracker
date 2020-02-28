@@ -11,11 +11,11 @@ namespace ORA.Tracker.Tests.Models
         [InlineData("", "")]
         [InlineData("2666b73d-059f-44c6-b29d-779b45540fa1", "127.0.0.1")]
         [InlineData("265d0721-850d-485e-8c9b-98e036dfb739", "8.8.8.8")]
-        public void WhenCreatingNode_ShouldHaveMatchingFields(string uid, string current_ip)
+        public void WhenCreatingNode_ShouldHaveMatchingFields(string id, string current_ip)
         {
-            var testee = new Node(uid, current_ip);
+            var testee = new Node(id, current_ip);
 
-            testee.uid.Should().Be(uid);
+            testee.id.Should().Be(id);
             testee.current_ip.Should().Be(current_ip);
         }
 
@@ -23,12 +23,12 @@ namespace ORA.Tracker.Tests.Models
         [InlineData("", "")]
         [InlineData("2666b73d-059f-44c6-b29d-779b45540fa1", "127.0.0.1")]
         [InlineData("265d0721-850d-485e-8c9b-98e036dfb739", "8.8.8.8")]
-        public void WhenConvertingToString_ShouldMatch(string uid, string current_ip)
+        public void WhenConvertingToString_ShouldMatch(string id, string current_ip)
         {
-            var testee = new Node(uid, current_ip);
+            var testee = new Node(id, current_ip);
 
             testee.ToString().Replace("\r", "").Should().Be(
-                "{\n  \"uid\": \"" + uid + "\",\n  \"current_ip\": \"" + current_ip + "\"\n}");
+                "{\n  \"id\": \"" + id + "\",\n  \"current_ip\": \"" + current_ip + "\"\n}");
         }
     }
 }
