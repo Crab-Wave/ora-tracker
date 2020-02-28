@@ -60,8 +60,6 @@ namespace ORA.Tracker
 
         private bool sendResponse(byte[] buffer, HttpListenerResponse response)
         {
-            //  buffer = System.Text.Encoding.UTF8.GetBytes(responseContent);
-
             response.ContentLength64 = buffer.Length;
             Stream output = response.OutputStream;
 

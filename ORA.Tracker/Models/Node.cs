@@ -9,7 +9,7 @@ namespace ORA.Tracker.Models
         public string current_ip { get; set; }
 
         public Node(string current_ip)
-            : this(new Guid(), current_ip) {}
+            : this(new Guid(), current_ip) { }
 
         public Node(Guid id, string current_ip)
         {
