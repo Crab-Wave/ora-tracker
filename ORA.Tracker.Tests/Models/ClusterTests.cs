@@ -15,7 +15,7 @@ namespace ORA.Tracker.Tests.Models
         [ClassData(typeof(TestData))]
         public void WhenConvertingToBytes_ShouldMatch(string name, List<string> members, List<string> admins, List<string> files)
         {
-            var id = new Guid();
+            var id = Guid.NewGuid();
             var testee = new Cluster(id, name, members, admins, files);
 
             testee.ToBytes().Should().Equals(Encoding.UTF8.GetBytes(

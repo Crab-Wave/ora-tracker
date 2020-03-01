@@ -14,7 +14,7 @@ namespace ORA.Tracker.Models
         public List<string> files { get; set; }
 
         public Cluster(string name)
-            : this(new Guid(), name, new List<string>(), new List<string>(), new List<string>()) { }
+            : this(Guid.NewGuid(), name, new List<string>(), new List<string>(), new List<string>()) { }
 
         public Cluster(Guid id, string name, List<string> members, List<string> admins, List<string> files)
         {
