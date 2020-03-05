@@ -13,15 +13,17 @@ namespace ORA.Tracker.Tests.Models
     {
         [Theory]
         [ClassData(typeof(TestData))]
-        public void WhenConvertingToBytes_ShouldMatch(string name, List<string> members, List<string> admins, List<string> files)
+        public void WhenSerializing_ShouldMatch(string name, List<string> members, List<string> admins, List<string> files)
         {
             var id = Guid.NewGuid();
-            var testee = new Cluster(id, name, members, admins, files);
+            var owner = Guid.NewGuid();
+            var testee = new Cluster(id, name, owner, members, admins, files);
 
-            testee.ToBytes().Should().Equals(Encoding.UTF8.GetBytes(
+            testee.Serialize().Should().Equals(Encoding.UTF8.GetBytes(
                 "{\n"
              + $"  \"id\": \"{id.ToString()}\",\n"
              + $"  \"name\": \"{name}\",\n"
+             + $"  \"owner\": \"{owner.ToString()}\",\n"
              + $"  \"members\": {StringListToIndentedString(members)},\n"
              + $"  \"admins\": {StringListToIndentedString(admins)},\n"
              + $"  \"files\": {StringListToIndentedString(files)}\n"
