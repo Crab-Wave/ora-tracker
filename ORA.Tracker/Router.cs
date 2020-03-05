@@ -22,7 +22,7 @@ namespace ORA.Tracker
 
         public void HandleRequest(HttpListenerContext context)
         {
-            string path = context.Request.RawUrl;
+            string path = context.Request.RawUrl.Split("?")[0];
             byte[] body = new byte[0];
 
             if (this.isRouteHandled(path))
