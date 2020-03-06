@@ -1,4 +1,6 @@
-﻿using ORA.Tracker.Database;
+﻿using System;
+
+using ORA.Tracker.Database;
 
 namespace ORA.Tracker
 {
@@ -6,12 +8,39 @@ namespace ORA.Tracker
     {
         public static void Main(string[] args)
         {
-            // TODO: port with console arguments
+            Arguments arguments;
+            try
+            {
+                arguments = Arguments.Parse(args);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return;
+            }
 
-            DatabaseManager.Init("../Database");
+            if (arguments.IsHelpRequested)
+            {
+                PrintProgramHelp();
+                return;
+            }
 
-            var tracker = new Tracker(3000);
+            DatabaseManager.Init(arguments.DatabasePath);
+
+            var tracker = new Tracker(arguments.Port);
             tracker.Start();
+        }
+
+        public static void PrintProgramHelp()
+        {
+            Console.WriteLine(@"Usage: ora-tracker [ARGUMENTS]
+Run the Tracker program for project ORA.
+By default the tracker is ran on port 3000 and the database directory is '../Database'.
+
+Arguments:
+  -p, --port      Specify the port that the tracker will listen to
+  -d, --database  Specify the tracker database directory path
+  -h, --help      Print this help message");
         }
     }
 }
