@@ -2,11 +2,13 @@ using System;
 using System.Net;
 
 using ORA.Tracker.Routes;
+using ORA.Tracker.Logging;
 
 namespace ORA.Tracker
 {
     public class Server
     {
+        private static readonly Logger logger = new Logger();
         private HttpListener listener;
         private readonly Router router;
 
@@ -37,15 +39,9 @@ namespace ORA.Tracker
                 IAsyncResult result = this.listener.BeginGetContext(new AsyncCallback(this.listenerCallback), this.listener);
                 result.AsyncWaitHandle.WaitOne();
             }
-            catch (HttpListenerException e)
+            catch (Exception e)
             {
-                // TODO: Log this
-                Console.WriteLine(e.Message);
-            }
-            catch (InvalidOperationException e)
-            {
-                // TODO: Log this
-                Console.WriteLine(e.Message);
+                logger.Error(e);
             }
         }
 

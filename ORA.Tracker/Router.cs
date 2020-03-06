@@ -6,11 +6,14 @@ using System.IO;
 
 using ORA.Tracker.Routes;
 using ORA.Tracker.Models;
+using ORA.Tracker.Logging;
 
 namespace ORA.Tracker
 {
     public class Router
     {
+        private static readonly Logger logger = new Logger();
+
         private Dictionary<string, Route> routes;
 
         public Router()
@@ -33,21 +36,23 @@ namespace ORA.Tracker
                 }
                 catch (HttpListenerException e)
                 {
+                    logger.Error(e);
+
                     context.Response.StatusCode = e.ErrorCode;
                     body = System.Text.Encoding.UTF8.GetBytes(e.Message);
-                    // TODO: log this
                 }
-                catch (System.Exception e)
+                catch (Exception e)
                 {
+                    logger.Error(e);
+
                     context.Response.StatusCode = 520;
                     body = Error.UnknownErrorBytes;
-                    // TODO: log this
-                    Console.WriteLine(e.Message);
                 }
             }
             else
             {
-                // TODO: Log this
+                logger.Error("Unhandled route");
+
                 context.Response.StatusCode = 404;
                 if (context.Request.HttpMethod != HttpMethod.Head.ToString())
                     body = Error.NotFoundBytes;
@@ -68,22 +73,9 @@ namespace ORA.Tracker
                 output.Write(buffer, 0, buffer.Length);
                 output.Close();
             }
-            catch (ObjectDisposedException e)
+            catch (Exception e)
             {
-                // TODO: Log this
-                Console.WriteLine(e.Message);
-                return false;
-            }
-            catch (HttpListenerException e)
-            {
-                // TODO: Log this
-                Console.WriteLine(e.Message);
-                return false;
-            }
-            catch (ProtocolViolationException e)
-            {
-                // TODO: Log this
-                Console.WriteLine(e.Message);
+                logger.Error(e);
                 return false;
             }
 

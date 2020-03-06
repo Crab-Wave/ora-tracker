@@ -31,6 +31,7 @@ namespace ORA.Tracker.Routes
 
             if (this.callbacks.ContainsKey(httpMethod))
                 return this.callbacks[httpMethod](request, response);
+
             throw new HttpListenerException(405, Error.MethodNotAllowed);
         }
 
