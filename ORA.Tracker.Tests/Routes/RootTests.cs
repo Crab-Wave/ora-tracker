@@ -4,7 +4,6 @@ using Xunit;
 using FluentAssertions;
 
 using ORA.Tracker.Tests.Utils;
-using ORA.Tracker.Routes;
 
 namespace ORA.Tracker.Routes.Tests
 {

@@ -52,5 +52,16 @@ namespace ORA.Tracker.Routes
 
         protected virtual byte[] options(HttpListenerRequest request, HttpListenerResponse response)
             => throw new HttpListenerException(404, Error.NotFoundString);
+
+        protected string[] getUrlParams(HttpListenerRequest request)
+        {
+            string[] p = request.RawUrl.Split("?")[0].Split("/");
+            string[] urlParams = new string[p.Length-2];
+
+            for (int i = 0; i < urlParams.Length; i++)
+                urlParams[i] = p[i+2];
+
+            return urlParams;
+        }
     }
 }

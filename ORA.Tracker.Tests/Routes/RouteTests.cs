@@ -1,10 +1,10 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using Xunit;
 using FluentAssertions;
 
 using ORA.Tracker.Tests.Utils;
-using ORA.Tracker.Routes;
 
 namespace ORA.Tracker.Routes.Tests
 {
@@ -63,11 +63,28 @@ namespace ORA.Tracker.Routes.Tests
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Replace("\r", "").Equals(notFound));
         }
+
+        [Fact]
+        public async void WhenGettingUrlParams_ShouldMatch()
+        {
+            var testee = new MockRoute();
+            HttpListenerContext context;
+
+            var urlParams = new string[] { "it", "is", "a", "test" };
+            string path = routePath + "/" + String.Join("/", urlParams);
+
+            context = await listener.GenerateContext(routePath, HttpMethod.Get);
+            testee.GetUrlParams(context.Request)
+                .Should()
+                .Equals(urlParams);
+        }
     }
 
     internal class MockRoute : Route
     {
         public MockRoute()
             : base("/route") { }
+
+        public string[] GetUrlParams(HttpListenerRequest request) => this.getUrlParams(request);
     }
 }
