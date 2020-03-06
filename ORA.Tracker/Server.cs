@@ -11,9 +11,11 @@ namespace ORA.Tracker
         private static readonly Logger logger = new Logger();
         private HttpListener listener;
         private readonly Router router;
+        private int port;
 
         public Server(int port)
         {
+            this.port = port;
             this.listener = new HttpListener();
             this.listener.Prefixes.Add($"http://localhost:{port.ToString()}/");
 
@@ -23,6 +25,7 @@ namespace ORA.Tracker
         public void Listen()
         {
             this.listener.Start();
+            Console.WriteLine($"Server started, now listening on port {this.port}...");
 
             while (this.listener.IsListening)
                 this.tryGetContext();

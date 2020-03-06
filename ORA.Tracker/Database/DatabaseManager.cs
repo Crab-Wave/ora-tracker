@@ -17,6 +17,7 @@ namespace ORA.Tracker.Database
 
             var options = new Options { CreateIfMissing = true };
             database = new DB(options, path);
+            Console.WriteLine($"Database opened at '{path}'.");
         }
 
         public static void Close()
