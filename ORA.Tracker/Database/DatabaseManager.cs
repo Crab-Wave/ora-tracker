@@ -13,7 +13,7 @@ namespace ORA.Tracker.Database
         public static void Init(string path)
         {
             if (database != null)
-                throw new Exception("Database is already initialized");
+                throw new Exception("DatabaseManager is already initialized");
 
             var options = new Options { CreateIfMissing = true };
             database = new DB(options, path);
@@ -22,7 +22,7 @@ namespace ORA.Tracker.Database
         public static void Close()
         {
             if (database == null)
-                throw new Exception("Database is not initialized");
+                throw new Exception("DatabaseManager is not initialized");
 
             database.Close();
         }
@@ -30,7 +30,7 @@ namespace ORA.Tracker.Database
         public static void Put(string key, Cluster cluster)
         {
             if (database == null)
-                throw new Exception("Database is not initialized");
+                throw new Exception("DatabaseManager is not initialized");
 
             database.Put(key, Encoding.UTF8.GetString(cluster.Serialize()));
         }
@@ -38,7 +38,7 @@ namespace ORA.Tracker.Database
         public static string Get(string key)
         {
             if (database == null)
-                throw new Exception("Database is not initialized");
+                throw new Exception("DatabaseManager is not initialized");
 
             return database.Get(key);
         }
@@ -46,7 +46,7 @@ namespace ORA.Tracker.Database
         public static void Delete(string key)
         {
             if (database == null)
-                throw new Exception("Database is not initialized");
+                throw new Exception("DatabaseManager is not initialized");
 
             database.Delete(key);
         }
@@ -54,7 +54,7 @@ namespace ORA.Tracker.Database
         public static void Info()
         {
             if (database == null)
-                throw new Exception("Database is not initialized");
+                throw new Exception("DatabaseManager is not initialized");
 
             var iterator = database.CreateIterator();
 
