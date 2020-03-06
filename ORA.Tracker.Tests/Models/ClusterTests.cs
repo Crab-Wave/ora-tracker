@@ -31,6 +31,19 @@ namespace ORA.Tracker.Tests.Models
             ));
         }
 
+        [Fact]
+        public void WhenSerializingId_ShouldMatch()
+        {
+            var id = Guid.NewGuid();
+            var testee = new Cluster(id, "", Guid.NewGuid(), new List<string>(), new List<string>(), new List<string>());
+
+            testee.SerializeId().Should().Equals(Encoding.UTF8.GetBytes(
+                "{\n"
+             + $"  \"id\": \"{id.ToString()}\"\n"
+             +  "}"
+            ));
+        }
+
         private static string StringListToIndentedString(List<string> l)
         {
             if (l.Count == 0)
