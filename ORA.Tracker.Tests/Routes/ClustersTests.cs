@@ -1,10 +1,11 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using Xunit;
 using FluentAssertions;
 
 using ORA.Tracker.Tests.Utils;
-using ORA.Tracker.Routes;
+using ORA.Tracker.Database;
 
 namespace ORA.Tracker.Routes.Tests
 {
@@ -16,6 +17,7 @@ namespace ORA.Tracker.Routes.Tests
         [Fact]
         public async void WhenHandledMethodRequest_ShouldReturn_String()
         {
+            ignoreErrors(() => DatabaseManager.Init("../DatabaseTest"));
             var testee = new Clusters();
             HttpListenerContext context;
 
@@ -38,6 +40,7 @@ namespace ORA.Tracker.Routes.Tests
         [Fact]
         public async void WhenHeadRequest_ShouldReturn_EmptyBody()
         {
+            ignoreErrors(() => DatabaseManager.Init("../DatabaseTest"));
             var testee = new Clusters();
             HttpListenerContext context;
 
@@ -50,6 +53,7 @@ namespace ORA.Tracker.Routes.Tests
         [Fact]
         public async void WhenUnhandledMethodRequest_Throws_HttpListenerException()
         {
+            ignoreErrors(() => DatabaseManager.Init("../DatabaseTest"));
             var testee = new Clusters();
             HttpListenerContext context;
 
@@ -66,6 +70,15 @@ namespace ORA.Tracker.Routes.Tests
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Replace("\r", "").Equals(notFound));
+        }
+
+        private static void ignoreErrors(Action f)
+        {
+            try
+            {
+                f();
+            }
+            catch {}
         }
     }
 }

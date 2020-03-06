@@ -6,7 +6,7 @@ using ORA.Tracker.Models;
 
 namespace ORA.Tracker.Database
 {
-    class DatabaseManager
+    public class DatabaseManager
     {
         private static DB database = null;
 
@@ -35,12 +35,12 @@ namespace ORA.Tracker.Database
             database.Put(key, Encoding.UTF8.GetString(cluster.Serialize()));
         }
 
-        public static string Get(string key)
+        public static byte[] Get(string key)
         {
             if (database == null)
                 throw new Exception("DatabaseManager is not initialized");
 
-            return database.Get(key);
+            return Encoding.UTF8.GetBytes(database.Get(key));
         }
 
         public static void Delete(string key)
