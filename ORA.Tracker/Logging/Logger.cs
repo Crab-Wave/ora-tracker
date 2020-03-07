@@ -36,13 +36,16 @@ namespace ORA.Tracker.Logging
             }
         }
 
+        public void Log(Level level, Exception exception)
+            => this.Log(level, $"{exception.Source} -> {exception.Message}\n{exception.StackTrace}");
+
         public void Info(string message) => this.Log(Level.INFO, message);
-        public void Info(Exception exception) => this.Log(Level.INFO, exception.Message);
+        public void Info(Exception exception) => this.Log(Level.INFO, exception);
 
         public void Debug(string message) => this.Log(Level.DEBUG, message);
-        public void Debug(Exception exception) => this.Log(Level.DEBUG, exception.Message);
+        public void Debug(Exception exception) => this.Log(Level.DEBUG, exception);
 
         public void Error(string message) => this.Log(Level.ERROR, message);
-        public void Error(Exception exception) => this.Log(Level.ERROR, exception.Message);
+        public void Error(Exception exception) => this.Log(Level.ERROR, exception);
     }
 }
