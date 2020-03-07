@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace ORA.Tracker.Tests.Utils
@@ -13,6 +14,7 @@ namespace ORA.Tracker.Tests.Utils
         public MockupListener(int port)
         {
             this.client = new HttpClient();
+            this.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("test");
             this.listener_uri = $"http://localhost:{port}/";
             this.listener = new HttpListener() { Prefixes = { listener_uri } };
 
