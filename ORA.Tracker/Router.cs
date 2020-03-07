@@ -13,6 +13,8 @@ namespace ORA.Tracker
     public class Router
     {
         private static readonly Logger logger = new Logger();
+        private static readonly byte[] unknownError = new Error("Unknown Error").ToBytes();
+        private static readonly byte[] notFound = new Error("Not Found").ToBytes();
 
         private Dictionary<string, Route> routes;
 
@@ -46,7 +48,7 @@ namespace ORA.Tracker
                     logger.Error(e);
 
                     context.Response.StatusCode = 520;
-                    body = Error.UnknownErrorBytes;
+                    body = unknownError;
                 }
             }
             else
@@ -55,7 +57,7 @@ namespace ORA.Tracker
 
                 context.Response.StatusCode = 404;
                 if (context.Request.HttpMethod != HttpMethod.Head.ToString())
-                    body = Error.NotFoundBytes;
+                    body = notFound;
             }
 
             this.sendResponse(body, context.Response);

@@ -8,6 +8,10 @@ namespace ORA.Tracker.Routes
 {
     public class Clusters : Route
     {
+        private static readonly string missingCredentials = new Error("Missing Credentials").ToString();
+        private static readonly string missingNameParameter = new Error("Missing name Parameter").ToString();
+        private static readonly string missingClusterId = new Error("Missing Cluster id").ToString();
+
         public Clusters()
             : base("/clusters") { }
 
@@ -31,13 +35,13 @@ namespace ORA.Tracker.Routes
         {
             string[] authorizationValues = request.Headers.GetValues("Authorization");
             if (authorizationValues == null || authorizationValues.Length < 1)
-                throw new Exception("Missing credentials");
+                throw new HttpListenerException(401, missingCredentials);
 
             // TODO: perform authentication
 
             string[] nameValues = request.QueryString.GetValues("name");
             if (nameValues == null || nameValues.Length < 1)
-                throw new Exception("Missing name parameter");
+                throw new HttpListenerException(400, missingNameParameter);
 
             Cluster cluster = new Cluster(nameValues[0], Guid.NewGuid());   // TODO: pass author guid
             DatabaseManager.Put(cluster.id.ToString(), cluster);
@@ -49,13 +53,13 @@ namespace ORA.Tracker.Routes
         {
             string[] authorizationValues = request.Headers.GetValues("Authorization");
             if (authorizationValues == null || authorizationValues.Length < 1)
-                throw new Exception("Missing credentials");
+                throw new HttpListenerException(401, missingCredentials);
 
             // TODO: perfom authentication
 
             var urlParams = this.getUrlParams(request);
             if (urlParams.Length < 1)
-                throw new Exception("Missing cluster id");
+                throw new HttpListenerException(400, missingClusterId);
 
             DatabaseManager.Delete(urlParams[0]);
 

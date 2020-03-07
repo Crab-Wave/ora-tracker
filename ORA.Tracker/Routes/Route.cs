@@ -8,6 +8,9 @@ namespace ORA.Tracker.Routes
 {
     public abstract class Route
     {
+        private static string methodNotAllowed = new Error("Method Not Allowed").ToString();
+        private static string notFound = new Error("Not Found").ToString();
+
         private Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, byte[]>> callbacks;
         public string Path { get; }
 
@@ -32,26 +35,26 @@ namespace ORA.Tracker.Routes
             if (this.callbacks.ContainsKey(httpMethod))
                 return this.callbacks[httpMethod](request, response);
 
-            throw new HttpListenerException(405, Error.MethodNotAllowed);
+            throw new HttpListenerException(405, methodNotAllowed);
         }
 
         protected virtual byte[] get(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFoundString);
+            => throw new HttpListenerException(404, notFound);
 
         protected virtual byte[] head(HttpListenerRequest request, HttpListenerResponse response)
             => new byte[0];      // Head should return empty body
 
         protected virtual byte[] post(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFoundString);
+            => throw new HttpListenerException(404, notFound);
 
         protected virtual byte[] put(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFoundString);
+            => throw new HttpListenerException(404, notFound);
 
         protected virtual byte[] delete(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFoundString);
+            => throw new HttpListenerException(404, notFound);
 
         protected virtual byte[] options(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFoundString);
+            => throw new HttpListenerException(404, notFound);
 
         protected string[] getUrlParams(HttpListenerRequest request)
         {
