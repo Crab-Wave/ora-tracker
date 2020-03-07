@@ -19,8 +19,8 @@ namespace ORA.Tracker.Routes
         protected override byte[] get(HttpListenerRequest request, HttpListenerResponse response)
         {
             var urlParams = this.getUrlParams(request);
-            if (urlParams.Length < 1)
-                return new byte[0];     // TODO: return all
+            if (urlParams.Length < 1 || urlParams[0] == "")
+                return DatabaseManager.GetAll();
 
             try
             {
