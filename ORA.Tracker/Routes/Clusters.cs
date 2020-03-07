@@ -11,6 +11,7 @@ namespace ORA.Tracker.Routes
         private static readonly string missingCredentials = new Error("Missing Credentials").ToString();
         private static readonly string missingNameParameter = new Error("Missing name Parameter").ToString();
         private static readonly string missingClusterId = new Error("Missing Cluster id").ToString();
+        private static readonly string invalidClusterId = new Error("Invalid Cluster id").ToString();
 
         public Clusters()
             : base("/clusters") { }
@@ -27,7 +28,7 @@ namespace ORA.Tracker.Routes
             }
             catch (ArgumentNullException)
             {
-                throw new Exception("Invalid cluster id");
+                throw new HttpListenerException(404, invalidClusterId);
             }
         }
 
@@ -58,7 +59,7 @@ namespace ORA.Tracker.Routes
             // TODO: perfom authentication
 
             var urlParams = this.getUrlParams(request);
-            if (urlParams.Length < 1)
+            if (urlParams.Length < 1 || urlParams[0] == "")
                 throw new HttpListenerException(400, missingClusterId);
 
             DatabaseManager.Delete(urlParams[0]);
