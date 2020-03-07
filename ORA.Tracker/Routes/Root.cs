@@ -6,6 +6,7 @@ namespace ORA.Tracker.Routes
     public class Root : Route
     {
         private static readonly byte[] welcomeMessage = Encoding.UTF8.GetBytes("Hey welcome to '/'");
+
         public Root()
             : base("/") { }
 
