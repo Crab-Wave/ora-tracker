@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 using System.IO;
 using System.Text.Json;
 using System.Collections.Generic;
@@ -8,12 +7,14 @@ namespace ORA.Tracker.Models
 {
     public class Cluster
     {
-        public Guid id { get; }
-        public string name { get; }
-        public Guid owner { get; }
-        public List<string> members { get; }
-        public List<string> admins { get; }
-        public List<string> files { get; }
+        public Guid id { get; set; }
+        public string name { get; set; }
+        public Guid owner { get; set; }
+        public List<string> members { get; set; }
+        public List<string> admins { get; set; }
+        public List<string> files { get; set; }
+
+        public Cluster() { }
 
         public Cluster(string name, Guid owner)
             : this(Guid.NewGuid(), name, owner, new List<string>(), new List<string>(), new List<string>()) { }
