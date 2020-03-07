@@ -170,7 +170,7 @@ namespace ORA.Tracker.Routes.Tests
             {
                 f();
             }
-            catch {}
+            catch { }
         }
     }
 }
