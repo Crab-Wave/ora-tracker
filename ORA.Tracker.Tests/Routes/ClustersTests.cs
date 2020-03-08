@@ -49,18 +49,18 @@ namespace ORA.Tracker.Routes.Tests
                 .Where(e => e.ErrorCode.Equals(404));
         }
 
-        [Fact]
-        public async void WhenGettingClusterWithoutParameter_ShouldReturn_AllClusters()
-        {
-            ignoreErrors(() => DatabaseManager.Init("../DatabaseTest"));
-            var testee = new Clusters();
-            HttpListenerContext context;
+        // [Fact]
+        // public async void WhenGettingClusterWithoutParameter_ShouldReturn_AllClusters()
+        // {
+        //     ignoreErrors(() => DatabaseManager.Init("../DatabaseTest"));
+        //     var testee = new Clusters();
+        //     HttpListenerContext context;
 
-            context = await listener.GenerateContext(routePath, HttpMethod.Get);
-            testee.HandleRequest(context.Request, context.Response);
+        //     context = await listener.GenerateContext(routePath, HttpMethod.Get);
+        //     testee.HandleRequest(context.Request, context.Response);
 
-            // TODO: write test
-        }
+        //     // TODO: write test
+        // }
 
         [Fact]
         public async void WhenCreatingCluster()
