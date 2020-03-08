@@ -6,4 +6,8 @@
     <LangVersion>8</LangVersion>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="LevelDB.Standard" Version="2.1.6.1" />
+  </ItemGroup>
+
 </Project>

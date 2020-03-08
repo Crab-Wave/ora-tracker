@@ -8,52 +8,63 @@ namespace ORA.Tracker.Routes
 {
     public abstract class Route
     {
-        private Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, string>> callbacks;
+        private static string methodNotAllowed = new Error("Method Not Allowed").ToString();
+        private static string notFound = new Error("Not Found").ToString();
+
+        private Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, byte[]>> callbacks;
         public string Path { get; }
 
         public Route(string path)
         {
             this.Path = path;
-            this.callbacks = new Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, string>>
+            this.callbacks = new Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, byte[]>>
             {
                 { "GET", this.get },
                 { "HEAD", this.head },
                 { "POST", this.post },
                 { "PUT", this.put },
                 { "DELETE", this.delete },
-                { "OPTIONS", this.options },
-                { "TRACE", this.trace }
+                { "OPTIONS", this.options }
             };
         }
 
-        public string HandleRequest(HttpListenerRequest request, HttpListenerResponse response)
+        public byte[] HandleRequest(HttpListenerRequest request, HttpListenerResponse response)
         {
             string httpMethod = request.HttpMethod;
 
             if (this.callbacks.ContainsKey(httpMethod))
                 return this.callbacks[httpMethod](request, response);
-            throw new HttpListenerException(405, Error.MethodNotAllowed);
+
+            throw new HttpListenerException(405, methodNotAllowed);
         }
 
-        protected virtual string get(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFound);
+        protected virtual byte[] get(HttpListenerRequest request, HttpListenerResponse response)
+            => throw new HttpListenerException(404, notFound);
 
-        protected virtual string head(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFound);
+        protected virtual byte[] head(HttpListenerRequest request, HttpListenerResponse response)
+            => new byte[0];      // Head should return empty body
 
-        protected virtual string post(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFound);
+        protected virtual byte[] post(HttpListenerRequest request, HttpListenerResponse response)
+            => throw new HttpListenerException(404, notFound);
 
-        protected virtual string put(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFound);
+        protected virtual byte[] put(HttpListenerRequest request, HttpListenerResponse response)
+            => throw new HttpListenerException(404, notFound);
 
-        protected virtual string delete(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFound);
+        protected virtual byte[] delete(HttpListenerRequest request, HttpListenerResponse response)
+            => throw new HttpListenerException(404, notFound);
 
-        protected virtual string options(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFound);
+        protected virtual byte[] options(HttpListenerRequest request, HttpListenerResponse response)
+            => throw new HttpListenerException(404, notFound);
 
-        protected virtual string trace(HttpListenerRequest request, HttpListenerResponse response)
-            => throw new HttpListenerException(404, Error.NotFound);
+        protected string[] getUrlParams(HttpListenerRequest request)
+        {
+            string[] p = request.RawUrl.Split("?")[0].Split("/");
+            string[] urlParams = new string[p.Length-2];
+
+            for (int i = 0; i < urlParams.Length; i++)
+                urlParams[i] = p[i+2];
+
+            return urlParams;
+        }
     }
 }

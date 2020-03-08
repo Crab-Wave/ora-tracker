@@ -3,69 +3,75 @@ using System.Net.Http;
 using Xunit;
 using FluentAssertions;
 
+using ORA.Tracker.Models;
 using ORA.Tracker.Tests.Utils;
-using ORA.Tracker.Routes;
 
 namespace ORA.Tracker.Routes.Tests
 {
     public class RootTests
     {
-        private static readonly HttpClient client = new HttpClient();
+        private static readonly MockupListener listener = new MockupListener(15301);
+        private static readonly string routePath = "/";
 
         [Fact]
-        public async void WhenHandledMethodRequest_ShouldReturnTrue()
+        public async void WhenHandledMethodRequest_ShouldReturn_WelcomeMessage()
         {
             var testee = new Root();
+            HttpListenerContext context;
 
-            HttpListenerContext context = await Generator.GenerateListenerContext("/", HttpMethod.Get);
+            context = await listener.GenerateContext(routePath, HttpMethod.Get);
             testee.HandleRequest(context.Request, context.Response)
                 .Should()
-                .Be("Hey welcome to '/'");
+                .Equals(System.Text.Encoding.UTF8.GetBytes("Hey welcome to '/'"));
         }
 
         [Fact]
-        public async void WhenUnhandledMethodRequest_ShouldReturnFalse()
+        public async void WhenHeadRequest_ShouldReturn_EmptyBody()
         {
             var testee = new Root();
-            string notFound = "{\n  \"message\": \"Not Found\",\n  \"documentation_url\": \"https://ora.crabwave.com/documentation\"\n}";
-
             HttpListenerContext context;
 
-            context = await Generator.GenerateListenerContext("/", HttpMethod.Head);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+            context = await listener.GenerateContext(routePath, HttpMethod.Head);
+            testee.HandleRequest(context.Request, context.Response)
                 .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Replace("\r", "").Equals(notFound));
+                .Equals(new byte[0]);
+        }
 
-            context = await Generator.GenerateListenerContext("/", HttpMethod.Post);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Replace("\r", "").Equals(notFound));
+        [Fact]
+        public async void WhenUnhandledMethodRequest_ShouldThrow_HttpListenerException()
+        {
+            var testee = new Root();
+            HttpListenerContext context;
 
-            context = await Generator.GenerateListenerContext("/", HttpMethod.Put);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Replace("\r", "").Equals(notFound));
+            string notFound = new Error("Not Found").ToString();
 
-            context = await Generator.GenerateListenerContext("/", HttpMethod.Delete);
+            context = await listener.GenerateContext(routePath, HttpMethod.Post);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
-                .Where(e => e.Message.Replace("\r", "").Equals(notFound));
+                .Where(e => e.Message.Equals(notFound))
+                .Where(e => e.ErrorCode.Equals(404));
 
-            context = await Generator.GenerateListenerContext("/", HttpMethod.Options);
+            context = await listener.GenerateContext(routePath, HttpMethod.Put);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
-                .Where(e => e.Message.Replace("\r", "").Equals(notFound));
+                .Where(e => e.Message.Equals(notFound))
+                .Where(e => e.ErrorCode.Equals(404));
 
-            context = await Generator.GenerateListenerContext("/", HttpMethod.Trace);
+            context = await listener.GenerateContext(routePath, HttpMethod.Delete);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
-                .Where(e => e.Message.Replace("\r", "").Equals(notFound));
+                .Where(e => e.Message.Equals(notFound))
+                .Where(e => e.ErrorCode.Equals(404));
+
+            context = await listener.GenerateContext(routePath, HttpMethod.Options);
+            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+                .Should()
+                .Throw<HttpListenerException>()
+                .Where(e => e.Message.Equals(notFound))
+                .Where(e => e.ErrorCode.Equals(404));
         }
     }
 }

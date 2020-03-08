@@ -1,14 +1,21 @@
 using System;
 using System.Net;
+using System.Net.Http;
 using System.Collections.Generic;
+using System.IO;
 
 using ORA.Tracker.Routes;
 using ORA.Tracker.Models;
+using ORA.Tracker.Logging;
 
 namespace ORA.Tracker
 {
     public class Router
     {
+        private static readonly Logger logger = new Logger();
+        private static readonly byte[] unknownError = new Error("Unknown Error").ToBytes();
+        private static readonly byte[] notFound = new Error("Not Found").ToBytes();
+
         private Dictionary<string, Route> routes;
 
         public Router()
@@ -20,8 +27,8 @@ namespace ORA.Tracker
 
         public void HandleRequest(HttpListenerContext context)
         {
-            string path = context.Request.RawUrl;
-            string body = new String("");
+            string path = "/" + (context.Request.RawUrl.Split("?")[0].Split("/")[1] ?? "");
+            byte[] body = new byte[0];
 
             if (this.isRouteHandled(path))
             {
@@ -31,23 +38,26 @@ namespace ORA.Tracker
                 }
                 catch (HttpListenerException e)
                 {
+                    logger.Error(e);
+
                     context.Response.StatusCode = e.ErrorCode;
-                    body = e.Message;
-                    // TODO: log this
+                    body = System.Text.Encoding.UTF8.GetBytes(e.Message);
                 }
-                catch (System.Exception e)
+                catch (Exception e)
                 {
+                    logger.Error(e);
+
                     context.Response.StatusCode = 520;
-                    body = Error.UnknownError;
-                    // TODO: log this
-                    Console.WriteLine(e.Message);
+                    body = unknownError;
                 }
             }
             else
             {
+                logger.Error("Unhandled route");
+
                 context.Response.StatusCode = 404;
-                body = Error.NotFound;
-                // TODO: Log this
+                if (context.Request.HttpMethod != HttpMethod.Head.ToString())
+                    body = notFound;
             }
 
             this.sendResponse(body, context.Response);
@@ -55,28 +65,19 @@ namespace ORA.Tracker
 
         private bool isRouteHandled(string path) => this.routes.ContainsKey(path);
 
-        private bool sendResponse(string responseContent, HttpListenerResponse response)
+        private bool sendResponse(byte[] buffer, HttpListenerResponse response)
         {
-            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseContent);
-
             response.ContentLength64 = buffer.Length;
-            System.IO.Stream output = response.OutputStream;
+            Stream output = response.OutputStream;
 
             try
             {
                 output.Write(buffer, 0, buffer.Length);
                 output.Close();
             }
-            catch (ObjectDisposedException e)
+            catch (Exception e)
             {
-                // TODO: Log this
-                Console.WriteLine(e.Message);
-                return false;
-            }
-            catch (HttpListenerException e)
-            {
-                // TODO: Log this
-                Console.WriteLine(e.Message);
+                logger.Error(e);
                 return false;
             }
 

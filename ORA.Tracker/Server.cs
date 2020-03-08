@@ -2,16 +2,20 @@ using System;
 using System.Net;
 
 using ORA.Tracker.Routes;
+using ORA.Tracker.Logging;
 
 namespace ORA.Tracker
 {
     public class Server
     {
+        private static readonly Logger logger = new Logger();
         private HttpListener listener;
         private readonly Router router;
+        private int port;
 
         public Server(int port)
         {
+            this.port = port;
             this.listener = new HttpListener();
             this.listener.Prefixes.Add($"http://localhost:{port.ToString()}/");
 
@@ -21,6 +25,7 @@ namespace ORA.Tracker
         public void Listen()
         {
             this.listener.Start();
+            Console.WriteLine($"Server started, now listening on port {this.port}...");
 
             while (this.listener.IsListening)
                 this.tryGetContext();
@@ -37,15 +42,9 @@ namespace ORA.Tracker
                 IAsyncResult result = this.listener.BeginGetContext(new AsyncCallback(this.listenerCallback), this.listener);
                 result.AsyncWaitHandle.WaitOne();
             }
-            catch (HttpListenerException e)
+            catch (Exception e)
             {
-                // TODO: Log this
-                Console.WriteLine(e.Message);
-            }
-            catch (InvalidOperationException e)
-            {
-                // TODO: Log this
-                Console.WriteLine(e.Message);
+                logger.Error(e);
             }
         }
 

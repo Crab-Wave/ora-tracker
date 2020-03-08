@@ -1,13 +1,16 @@
 using System.Net;
+using System.Text;
 
 namespace ORA.Tracker.Routes
 {
     public class Root : Route
     {
+        private static readonly byte[] welcomeMessage = Encoding.UTF8.GetBytes("Hey welcome to '/'");
+
         public Root()
             : base("/") { }
 
-        protected override string get(HttpListenerRequest request, HttpListenerResponse response)
-            => "Hey welcome to '/'";
+        protected override byte[] get(HttpListenerRequest request, HttpListenerResponse response)
+            => welcomeMessage;
     }
 }

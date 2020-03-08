@@ -1,3 +1,4 @@
+using System.Text;
 using Xunit;
 using FluentAssertions;
 
@@ -12,12 +13,16 @@ namespace ORA.Tracker.Tests.Models
         [InlineData("Not Found")]
         [InlineData("Method Not Allowed")]
         [InlineData("Unknown Error")]
-        public void WhenCreatingError_ShouldHaveMatchingMessageField(string message)
+        public void WhenConvertingToString_ShouldMatchMessage(string message)
         {
             var testee = new Error(message);
 
-            testee.message.Should().Be(message);
-            testee.documentation_url.Should().Be("https://ora.crabwave.com/documentation");
+            testee.ToString().Replace("\r", "").Should().Be(
+                "{\n"
+             + $"  \"message\": \"{message}\",\n"
+             +  "  \"documentation_url\": \"https://ora.crabwave.com/documentation\"\n"
+             +  "}"
+            );
         }
 
         [Theory]
@@ -25,12 +30,16 @@ namespace ORA.Tracker.Tests.Models
         [InlineData("Not Found")]
         [InlineData("Method Not Allowed")]
         [InlineData("Unknown Error")]
-        public void WhenConvertingToString_ShouldMatchMessage(string message)
+        public void WhenConvertingToBytes_ShouldMatchMessage(string message)
         {
             var testee = new Error(message);
 
-            testee.ToString().Replace("\r", "").Should().Be(
-                "{\n  \"message\": \"" + message + "\",\n  \"documentation_url\": \"https://ora.crabwave.com/documentation\"\n}");
+            testee.ToBytes().Should().Equals(Encoding.UTF8.GetBytes(
+                "{\n"
+             + $"  \"message\": \"{message}\",\n"
+             +  "  \"documentation_url\": \"https://ora.crabwave.com/documentation\"\n"
+             +  "}"
+            ));
         }
     }
 }
