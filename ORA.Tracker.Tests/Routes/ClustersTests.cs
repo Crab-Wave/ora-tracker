@@ -92,35 +92,38 @@ namespace ORA.Tracker.Routes.Tests
                 .Where(e => e.ErrorCode.Equals(400));
         }
 
+        // [Fact]
+        // public async void WhenDeletingClusterExistingCluster_ShouldReturn_EmptyBody()
+        // {
+        //     ignoreErrors(() => DatabaseManager.Init("../DatabaseTest"));
+        //     var testee = new Clusters();
+        //     HttpListenerContext context;
+
+        //     Cluster c = new Cluster("test", Guid.NewGuid());
+        //     DatabaseManager.Put(c.id.ToString(), c);
+
+        //     context = await listener.GenerateContext(routePath + "/" + c.id.ToString(), HttpMethod.Delete);
+        //     testee.HandleRequest(context.Request, context.Response)
+        //         .Should()
+        //         .Equals(new byte[0]);
+        // }
+
         [Fact]
-        public async void WhenDeletingClusterExistingCluster_ShouldReturn_EmptyBody()
-        {
-            ignoreErrors(() => DatabaseManager.Init("../DatabaseTest"));
-            var testee = new Clusters();
-            HttpListenerContext context;
-
-            Cluster c = new Cluster("test", Guid.NewGuid());
-            DatabaseManager.Put(c.id.ToString(), c);
-
-            context = await listener.GenerateContext(routePath + "/" + c.id.ToString(), HttpMethod.Delete);
-            testee.HandleRequest(context.Request, context.Response)
-                .Should()
-                .Equals(new byte[0]);
-        }
-
-        [Fact]
-        public async void WhenDeletingClusterInexistingCluster_ShouldReturn_EmptyBody()
+        public async void WhenDeletingClusterInexistingCluster_ShouldThrow_HttpListenerException()
         {
             ignoreErrors(() => DatabaseManager.Init("../DatabaseTest"));
             var testee = new Clusters();
             HttpListenerContext context;
 
             string inexistingId = "test";
+            string invalidClusterId = new Error("Invalid Cluster id").ToString();
 
             context = await listener.GenerateContext(routePath + "/" + inexistingId, HttpMethod.Delete);
-            testee.HandleRequest(context.Request, context.Response)
+            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
-                .Equals(new byte[0]);
+                .Throw<HttpListenerException>()
+                .Where(e => e.Message.Equals(invalidClusterId))
+                .Where(e => e.ErrorCode.Equals(404));
         }
 
         // [Fact]

@@ -62,9 +62,18 @@ namespace ORA.Tracker.Routes
             if (urlParams.Length < 1 || urlParams[0] == "")
                 throw new HttpListenerException(400, missingClusterId);
 
-            DatabaseManager.Delete(urlParams[0]);
+            try
+            {
+                DatabaseManager.Get(urlParams[0]);
 
-            return new byte[0];
+                // if cluster exists
+                DatabaseManager.Delete(urlParams[0]);
+                return new byte[0];
+            }
+            catch (ArgumentNullException)
+            {
+                throw new HttpListenerException(404, invalidClusterId);
+            }
         }
     }
 }
