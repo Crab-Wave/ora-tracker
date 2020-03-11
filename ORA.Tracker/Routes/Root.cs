@@ -8,7 +8,7 @@ namespace ORA.Tracker.Routes
         private static readonly byte[] welcomeMessage = Encoding.UTF8.GetBytes("Hey welcome to '/'");
 
         public Root()
-            : base("/") { }
+            : base() { }
 
         protected override byte[] get(HttpListenerRequest request, HttpListenerResponse response)
             => welcomeMessage;

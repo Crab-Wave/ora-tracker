@@ -31,7 +31,7 @@ namespace ORA.Tracker
                 this.tryGetContext();
         }
 
-        public void RegisterRoute(Route route) => this.router.RegisterRoute(route);
+        public void RegisterRoute(string path, Route route) => this.router.RegisterRoute(path, route);
 
         public void Stop() => this.listener.Stop();
 

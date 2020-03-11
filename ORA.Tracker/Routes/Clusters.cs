@@ -14,7 +14,7 @@ namespace ORA.Tracker.Routes
         private static readonly string invalidClusterId = new Error("Invalid Cluster id").ToString();
 
         public Clusters()
-            : base("/clusters") { }
+            : base() { }
 
         protected override byte[] get(HttpListenerRequest request, HttpListenerResponse response)
         {
