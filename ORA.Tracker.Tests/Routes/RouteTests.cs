@@ -89,7 +89,7 @@ namespace ORA.Tracker.Routes.Tests
     internal class MockRoute : Route
     {
         public MockRoute()
-            : base("/route") { }
+            : base() { }
 
         public string[] GetUrlParams(HttpListenerRequest request) => this.getUrlParams(request);
     }
