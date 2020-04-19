@@ -12,15 +12,14 @@ namespace ORA.Tracker.Routes.Tests
     public class RouteTests
     {
         private static readonly MockupListener listener = new MockupListener(15300);
-        private static readonly string routePath = "/route";
+
+        private MockRoute testee = new MockRoute();
+        private HttpListenerContext context;
 
         [Fact]
         public async void WhenHeadRequest_ShouldReturn_EmptyBody()
         {
-            var testee = new MockRoute();
-            HttpListenerContext context;
-
-            context = await listener.GenerateContext(routePath, HttpMethod.Head);
+            context = await listener.GenerateContext("/", HttpMethod.Head);
             testee.HandleRequest(context.Request, context.Response)
                 .Should()
                 .Equals(new byte[0]);
@@ -29,40 +28,37 @@ namespace ORA.Tracker.Routes.Tests
         [Fact]
         public async void WhenUnhandledMethodRequest_ShouldThrow_HttpListenerException()
         {
-            var testee = new MockRoute();
-            HttpListenerContext context;
-
             string notFound = new Error("Not Found").ToString();
 
-            context = await listener.GenerateContext(routePath, HttpMethod.Get);
+            context = await listener.GenerateContext("/", HttpMethod.Get);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(notFound))
                 .Where(e => e.ErrorCode.Equals(404));
 
-            context = await listener.GenerateContext(routePath, HttpMethod.Post);
+            context = await listener.GenerateContext("/", HttpMethod.Post);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(notFound))
                 .Where(e => e.ErrorCode.Equals(404));
 
-            context = await listener.GenerateContext(routePath, HttpMethod.Put);
+            context = await listener.GenerateContext("/", HttpMethod.Put);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(notFound))
                 .Where(e => e.ErrorCode.Equals(404));
 
-            context = await listener.GenerateContext(routePath, HttpMethod.Delete);
+            context = await listener.GenerateContext("/", HttpMethod.Delete);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(notFound))
                 .Where(e => e.ErrorCode.Equals(404));
 
-            context = await listener.GenerateContext(routePath, HttpMethod.Options);
+            context = await listener.GenerateContext("/", HttpMethod.Options);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
@@ -73,13 +69,10 @@ namespace ORA.Tracker.Routes.Tests
         [Fact]
         public async void WhenGettingUrlParams_ShouldMatch()
         {
-            var testee = new MockRoute();
-            HttpListenerContext context;
-
             var urlParams = new string[] { "it", "is", "a", "test" };
-            string path = routePath + "/" + String.Join("/", urlParams);
+            string path = "/" + String.Join("/", urlParams);
 
-            context = await listener.GenerateContext(routePath, HttpMethod.Get);
+            context = await listener.GenerateContext(path, HttpMethod.Get);
             testee.GetUrlParams(context.Request)
                 .Should()
                 .Equals(urlParams);
