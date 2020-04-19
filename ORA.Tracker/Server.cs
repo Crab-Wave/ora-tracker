@@ -25,7 +25,7 @@ namespace ORA.Tracker
         public void Listen()
         {
             this.listener.Start();
-            Console.WriteLine($"Server started, now listening on port {this.port}...");
+            logger.Info($"Server started, now listening on port {this.port}...");
 
             while (this.listener.IsListening)
                 this.tryGetContext();
