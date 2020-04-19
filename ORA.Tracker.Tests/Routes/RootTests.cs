@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http;
 using Xunit;
 using FluentAssertions;
+using System.Text;
 
 using ORA.Tracker.Models;
 using ORA.Tracker.Tests.Utils;
@@ -21,7 +22,7 @@ namespace ORA.Tracker.Routes.Tests
             context = await listener.GenerateContext("/", HttpMethod.Get);
             testee.HandleRequest(context.Request, context.Response)
                 .Should()
-                .Equals(System.Text.Encoding.UTF8.GetBytes("Hey welcome to '/'"));
+                .Equals(Encoding.UTF8.GetBytes("Hey welcome to '/'"));
         }
 
         [Fact]
