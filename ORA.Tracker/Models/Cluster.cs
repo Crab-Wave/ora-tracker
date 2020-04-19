@@ -42,5 +42,7 @@ namespace ORA.Tracker.Models
 
             return stream.ToArray();
         }
+
+        public static Cluster Deserialize(byte[] jsonBytes) => JsonSerializer.Deserialize<Cluster>(jsonBytes);
     }
 }
