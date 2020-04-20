@@ -2,7 +2,7 @@ using System;
 using System.Net;
 
 using ORA.Tracker.Routes;
-using ORA.Tracker.Logging;
+using ORA.Tracker.Services;
 
 namespace ORA.Tracker
 {

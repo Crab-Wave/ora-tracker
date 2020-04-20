@@ -1,6 +1,6 @@
 using System;
 
-namespace ORA.Tracker.Logging
+namespace ORA.Tracker.Services
 {
     public class Logger
     {

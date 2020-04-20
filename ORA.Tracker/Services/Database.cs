@@ -6,9 +6,9 @@ using LevelDB;
 
 using ORA.Tracker.Models;
 
-namespace ORA.Tracker.Database
+namespace ORA.Tracker.Services
 {
-    public class DatabaseManager
+    public class Database
     {
         private static DB database = null;
 
