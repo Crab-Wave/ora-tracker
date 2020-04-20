@@ -9,9 +9,6 @@ using ORA.Tracker.Models;
 using ORA.Tracker.Database;
 using ORA.Tracker.Tests.Utils;
 
-using Xunit.Abstractions;
-
-
 namespace ORA.Tracker.Routes.Tests
 {
     public class ClustersTests

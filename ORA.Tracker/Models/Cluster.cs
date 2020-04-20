@@ -7,6 +7,16 @@ namespace ORA.Tracker.Models
 {
     public class Cluster
     {
+        private struct Id
+        {
+            public string id { get; set; }
+
+            public Id(Guid id)
+            {
+                this.id = id.ToString();
+            }
+        }
+
         public Guid id { get; set; }
         public string name { get; set; }
         public Guid owner { get; set; }
@@ -31,17 +41,7 @@ namespace ORA.Tracker.Models
 
         public byte[] Serialize() => JsonSerializer.SerializeToUtf8Bytes<Cluster>(this, new JsonSerializerOptions { WriteIndented = true });
 
-        public byte[] SerializeId()
-        {
-            var stream = new MemoryStream();
-            var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
-            writer.WriteStartObject();
-            writer.WriteString("id", this.id.ToString());
-            writer.WriteEndObject();
-            writer.Flush();
-
-            return stream.ToArray();
-        }
+        public byte[] SerializeId() => JsonSerializer.SerializeToUtf8Bytes<Id>(new Id(id), new JsonSerializerOptions { WriteIndented = true });
 
         public static Cluster Deserialize(byte[] jsonBytes) => JsonSerializer.Deserialize<Cluster>(jsonBytes);
     }
