@@ -12,6 +12,7 @@ namespace ORA.Tracker
 
             this.server.RegisterRoute("/", new Root());
             this.server.RegisterRoute("/clusters", new Clusters());
+            this.server.RegisterRoute("/token", new Token());
         }
 
         public void Start() => this.server.Listen();
