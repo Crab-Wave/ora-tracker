@@ -25,13 +25,13 @@ namespace ORA.Tracker
         public void Listen()
         {
             this.listener.Start();
-            Console.WriteLine($"Server started, now listening on port {this.port}...");
+            logger.Info($"Server started, now listening on port {this.port}...");
 
             while (this.listener.IsListening)
                 this.tryGetContext();
         }
 
-        public void RegisterRoute(Route route) => this.router.RegisterRoute(route);
+        public void RegisterRoute(string path, Route route) => this.router.RegisterRoute(path, route);
 
         public void Stop() => this.listener.Stop();
 

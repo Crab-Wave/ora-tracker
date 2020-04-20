@@ -12,7 +12,7 @@ namespace ORA.Tracker
         {
             // Default values for argument fields
             int port = 3000;
-            string databasePath = "../Database";
+            string databasePath = "./Database";
             bool isHelpRequested = false;
 
             for (int i = 0; i < args.Length; i++)

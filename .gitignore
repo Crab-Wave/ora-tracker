@@ -435,3 +435,10 @@ $RECYCLE.BIN/
 # Vim
 *.swp
 
+# LevelDB
+*.ldb
+*.old
+LOCK
+LOG
+CURRENT
+MANIFEST-*

@@ -12,11 +12,9 @@ namespace ORA.Tracker.Routes
         private static string notFound = new Error("Not Found").ToString();
 
         private Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, byte[]>> callbacks;
-        public string Path { get; }
 
-        public Route(string path)
+        public Route()
         {
-            this.Path = path;
             this.callbacks = new Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, byte[]>>
             {
                 { "GET", this.get },

@@ -10,8 +10,8 @@ namespace ORA.Tracker
         {
             this.server = new Server(port);
 
-            this.server.RegisterRoute(new Root());
-            this.server.RegisterRoute(new Clusters());
+            this.server.RegisterRoute("/", new Root());
+            this.server.RegisterRoute("/clusters", new Clusters());
         }
 
         public void Start() => this.server.Listen();

@@ -44,6 +44,35 @@ namespace ORA.Tracker.Tests.Models
             ));
         }
 
+        [Fact]
+        public void WhenDeserializing_ShouldMatch()
+        {
+            var id = Guid.NewGuid();
+            string name = "test";
+            var owner = Guid.NewGuid();
+
+            byte[] jsonBytes = Encoding.UTF8.GetBytes(
+                "{\n"
+             + $"  \"id\": \"{id.ToString()}\",\n"
+             + $"  \"name\": \"{name}\",\n"
+             + $"  \"owner\": \"{owner.ToString()}\",\n"
+             +  "  \"members\": [],\n"
+             +  "  \"admins\": [],\n"
+             +  "  \"files\": []\n"
+             +  "}"
+            );
+
+            var c = Cluster.Deserialize(jsonBytes);
+
+            c.Should().BeOfType<Cluster>();
+            c.id.Should().Be(id);
+            c.name.Should().Be(name);
+            c.owner.Should().Be(owner);
+            c.members.Should().BeEmpty();
+            c.admins.Should().BeEmpty();
+            c.files.Should().BeEmpty();
+        }
+
         private static string StringListToIndentedString(List<string> l)
         {
             if (l.Count == 0)

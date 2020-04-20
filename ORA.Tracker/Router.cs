@@ -23,7 +23,7 @@ namespace ORA.Tracker
             this.routes = new Dictionary<string, Route>();
         }
 
-        public void RegisterRoute(Route route) => this.routes.Add(route.Path, route);
+        public void RegisterRoute(string path, Route route) => this.routes.Add(path, route);
 
         public void HandleRequest(HttpListenerContext context)
         {
