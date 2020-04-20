@@ -64,18 +64,13 @@ namespace ORA.Tracker.Tests.Models
 
             var c = Cluster.Deserialize(jsonBytes);
 
-            c.Should().BeOfType<Cluster>()
-                .Which.id.Should().Be(id);
-            c.Should().BeOfType<Cluster>()
-                .Which.name.Should().Be(name);
-            c.Should().BeOfType<Cluster>()
-                .Which.owner.Should().Be(owner);
-            c.Should().BeOfType<Cluster>()
-                .Which.members.Should().Equal(new List<string>());
-            c.Should().BeOfType<Cluster>()
-                .Which.admins.Should().Equal(new List<string>());
-            c.Should().BeOfType<Cluster>()
-                .Which.files.Should().Equal(new List<string>());
+            c.Should().BeOfType<Cluster>();
+            c.id.Should().Be(id);
+            c.name.Should().Be(name);
+            c.owner.Should().Be(owner);
+            c.members.Should().BeEmpty();
+            c.admins.Should().BeEmpty();
+            c.files.Should().BeEmpty();
         }
 
         private static string StringListToIndentedString(List<string> l)
