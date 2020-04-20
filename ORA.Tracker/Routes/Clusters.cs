@@ -8,7 +8,6 @@ namespace ORA.Tracker.Routes
 {
     public class Clusters : Route
     {
-        private static readonly string missingCredentials = new Error("Missing Credentials").ToString();
         private static readonly string missingNameParameter = new Error("Missing name Parameter").ToString();
         private static readonly string missingClusterId = new Error("Missing Cluster id").ToString();
         private static readonly string invalidClusterId = new Error("Invalid Cluster id").ToString();
@@ -34,11 +33,7 @@ namespace ORA.Tracker.Routes
 
         protected override byte[] post(HttpListenerRequest request, HttpListenerResponse response)
         {
-            string[] authorizationValues = request.Headers.GetValues("Authorization");
-            if (authorizationValues == null || authorizationValues.Length < 1)
-                throw new HttpListenerException(401, missingCredentials);
-
-            // TODO: perform authentication
+            string token = Services.Authorization.GetToken(request.Headers);
 
             string[] nameValues = request.QueryString.GetValues("name");
             if (nameValues == null || nameValues.Length < 1)
@@ -52,11 +47,7 @@ namespace ORA.Tracker.Routes
 
         protected override byte[] delete(HttpListenerRequest request, HttpListenerResponse response)
         {
-            string[] authorizationValues = request.Headers.GetValues("Authorization");
-            if (authorizationValues == null || authorizationValues.Length < 1)
-                throw new HttpListenerException(401, missingCredentials);
-
-            // TODO: perfom authentication
+            string token = Services.Authorization.GetToken(request.Headers);
 
             var urlParams = this.getUrlParams(request);
             if (urlParams.Length < 1 || urlParams[0] == "")
