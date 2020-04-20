@@ -11,16 +11,19 @@ namespace ORA.Tracker.Tests.Utils
         private string listener_uri;
         private HttpListener listener;
 
-        public MockupListener(int port)
+        public MockupListener(int port, AuthenticationHeaderValue authorization)
         {
             this.client = new HttpClient();
-            this.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("test");
+            this.client.DefaultRequestHeaders.Authorization = authorization;
             this.listener_uri = $"http://localhost:{port}/";
             this.listener = new HttpListener() { Prefixes = { listener_uri } };
 
             if (!this.listener.IsListening)
                 this.listener.Start();
         }
+
+        public MockupListener(int port)
+            : this(port, new AuthenticationHeaderValue("Bearer", "credentials")) { }
 
         public async Task<HttpListenerContext> GenerateContext(string path, HttpMethod method)
         {
