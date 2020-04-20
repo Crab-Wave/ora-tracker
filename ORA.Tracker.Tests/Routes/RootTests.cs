@@ -17,7 +17,7 @@ namespace ORA.Tracker.Routes.Tests
         private HttpListenerContext context;
 
         [Fact]
-        public async void WhenHandledMethodRequest_ShouldReturn_WelcomeMessage()
+        public async void WhenGet_ShouldReturn_WelcomeMessage()
         {
             context = await listener.GenerateContext("/", HttpMethod.Get);
             testee.HandleRequest(context.Request, context.Response)

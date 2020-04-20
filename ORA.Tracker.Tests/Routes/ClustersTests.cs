@@ -24,7 +24,7 @@ namespace ORA.Tracker.Routes.Tests
         }
 
         [Fact]
-        public async void WhenGettingExistingCluster_ShouldMatch()
+        public async void WhenGetExistingCluster_ShouldMatch()
         {
             var c = new Cluster("test", Guid.NewGuid());
             Database.Put(c.id.ToString(), c);
@@ -36,7 +36,7 @@ namespace ORA.Tracker.Routes.Tests
         }
 
         [Fact]
-        public async void WhenGettingInexistingCluster_ShouldThrow_HttpListenerException()
+        public async void WhenGetInexistingCluster_ShouldThrow_HttpListenerException()
         {
             string inexistingId = "test";
             string invalidClusterId = new Error("Invalid Cluster id").ToString();
@@ -50,7 +50,7 @@ namespace ORA.Tracker.Routes.Tests
         }
 
         [Fact]
-        public async void WhenGettingClusterWithoutParameter_ShouldReturn_AllClusters()
+        public async void WhenGetWithoutParameter_ShouldReturn_AllClusters()
         {
             context = await listener.GenerateContext("/", HttpMethod.Get);
             testee.HandleRequest(context.Request, context.Response);
@@ -59,7 +59,7 @@ namespace ORA.Tracker.Routes.Tests
         }
 
         [Fact]
-        public async void WhenCreatingCluster()
+        public async void WhenPost_ShouldCreateCluster()
         {
             string clusterName = "test";
             context = await listener.GenerateContext($"?name={clusterName}", HttpMethod.Post);
@@ -72,7 +72,7 @@ namespace ORA.Tracker.Routes.Tests
         }
 
         [Fact]
-        public async void WhenCreatingClusterWithoutNameParameter_ShouldThrow_HttpListenerException()
+        public async void WhenPostWithoutNameParameter_ShouldThrow_HttpListenerException()
         {
             string missingNameParameter = new Error("Missing name Parameter").ToString();
 
@@ -85,7 +85,7 @@ namespace ORA.Tracker.Routes.Tests
         }
 
         [Fact]
-        public async void WhenDeletingClusterExistingCluster_ShouldReturn_EmptyBody()
+        public async void WhenDeleteExistingCluster_ShouldReturn_EmptyBody()
         {
             ignoreErrors(() => Database.Init("../DatabaseTest"));
             var testee = new Clusters();
@@ -101,7 +101,7 @@ namespace ORA.Tracker.Routes.Tests
         }
 
         [Fact]
-        public async void WhenDeletingClusterInexistingCluster_ShouldThrow_HttpListenerException()
+        public async void WhenDeleteInexistingCluster_ShouldThrow_HttpListenerException()
         {
             string inexistingId = "test";
             string invalidClusterId = new Error("Invalid Cluster id").ToString();
@@ -115,7 +115,7 @@ namespace ORA.Tracker.Routes.Tests
         }
 
         [Fact]
-        public async void WhenDeletingClusterWithoutClusterId_ShouldThrow_HttpListenerException()
+        public async void WhenDeleteWithoutClusterId_ShouldThrow_HttpListenerException()
         {
             ignoreErrors(() => Database.Init("../DatabaseTest"));
             var testee = new Clusters();
