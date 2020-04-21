@@ -15,7 +15,7 @@ namespace ORA.Tracker.Services.Databases
         public static void Init(string path)
         {
             if (database != null)
-                throw new Exception("DatabaseManager is already initialized");
+                throw new Exception("ClusterDatabase is already initialized");
 
             var options = new Options { CreateIfMissing = true };
             database = new DB(options, path);
@@ -25,7 +25,7 @@ namespace ORA.Tracker.Services.Databases
         public static void Close()
         {
             if (database == null)
-                throw new Exception("DatabaseManager is not initialized");
+                throw new Exception("ClusterDatabase is not initialized");
 
             database.Close();
         }
@@ -33,7 +33,7 @@ namespace ORA.Tracker.Services.Databases
         public static void Put(string key, Cluster cluster)
         {
             if (database == null)
-                throw new Exception("DatabaseManager is not initialized");
+                throw new Exception("ClusterDatabase is not initialized");
 
             database.Put(key, Encoding.UTF8.GetString(cluster.Serialize()));
         }
@@ -41,7 +41,7 @@ namespace ORA.Tracker.Services.Databases
         public static byte[] Get(string key)
         {
             if (database == null)
-                throw new Exception("DatabaseManager is not initialized");
+                throw new Exception("ClusterDatabase is not initialized");
 
             return Encoding.UTF8.GetBytes(database.Get(key));
         }
@@ -49,7 +49,7 @@ namespace ORA.Tracker.Services.Databases
         public static byte[] GetAll()
         {
             if (database == null)
-                throw new Exception("DatabaseManager is not initialized");
+                throw new Exception("ClusterDatabase is not initialized");
 
             var stream = new MemoryStream();
             var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
@@ -92,7 +92,7 @@ namespace ORA.Tracker.Services.Databases
         public static void Delete(string key)
         {
             if (database == null)
-                throw new Exception("DatabaseManager is not initialized");
+                throw new Exception("ClusterDatabase is not initialized");
 
             database.Delete(key);
         }
@@ -100,7 +100,7 @@ namespace ORA.Tracker.Services.Databases
         public static void Info()
         {
             if (database == null)
-                throw new Exception("DatabaseManager is not initialized");
+                throw new Exception("ClusterDatabase is not initialized");
 
             var iterator = database.CreateIterator();
 
