@@ -20,12 +20,14 @@ namespace ORA.Tracker.Routes.Tests
 
         public ClustersTests()
         {
-            ignoreErrors(() => ClusterDatabase.Init("../DatabaseTest/Clusters"));
+            ignoreErrors(() => ClusterDatabase.Init("./DatabaseTest/Clusters"));
         }
 
         [Fact]
         public async void WhenGetExistingCluster_ShouldMatch()
         {
+            ignoreErrors(() => ClusterDatabase.Init("./DatabaseTest/Clusters"));
+
             var c = new Cluster("test", Guid.NewGuid());
             ClusterDatabase.Put(c.id.ToString(), c);
 
@@ -61,6 +63,8 @@ namespace ORA.Tracker.Routes.Tests
         [Fact]
         public async void WhenPost_ShouldCreateCluster()
         {
+            ignoreErrors(() => ClusterDatabase.Init("./DatabaseTest/Clusters"));
+
             string clusterName = "test";
             context = await listener.GenerateContext($"?name={clusterName}", HttpMethod.Post);
 
@@ -87,6 +91,8 @@ namespace ORA.Tracker.Routes.Tests
         [Fact]
         public async void WhenDeleteExistingCluster_ShouldReturn_EmptyBody()
         {
+            ignoreErrors(() => ClusterDatabase.Init("./DatabaseTest/Clusters"));
+
             var testee = new Clusters();
             HttpListenerContext context;
 

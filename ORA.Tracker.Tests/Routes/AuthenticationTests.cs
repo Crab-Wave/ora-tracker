@@ -63,10 +63,10 @@ namespace ORA.Tracker.Routes.Tests
             var csp = new RSACryptoServiceProvider();
             byte[] publicKey = csp.ExportRSAPublicKey();
 
-            string invalidKeyStructure = new Error("Invalid key structure").ToString();
-
             context = await listener.GenerateContext("/", HttpMethod.Post, publicKey);
             testee.HandleRequest(context.Request, context.Response);
+
+            // TODO: write test
         }
 
         [Fact]
