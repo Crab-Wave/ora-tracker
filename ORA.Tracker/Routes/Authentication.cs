@@ -29,9 +29,10 @@ namespace ORA.Tracker.Routes
 
             byte[] token = generateToken(32);
 
-            var csp = new RSACryptoServiceProvider(publicKey.Length);
+            RSACryptoServiceProvider csp;
             try
             {
+                csp = new RSACryptoServiceProvider(publicKey.Length);
                 csp.ImportRSAPublicKey(publicKey, out int _);
             }
             catch (CryptographicException)
