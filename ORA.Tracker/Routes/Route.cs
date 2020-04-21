@@ -1,6 +1,8 @@
 using System;
 using System.Net;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 using ORA.Tracker.Models;
 
@@ -63,6 +65,16 @@ namespace ORA.Tracker.Routes
                 urlParams[i] = p[i+2];
 
             return urlParams;
+        }
+
+        protected byte[] getBody(HttpListenerRequest request)
+        {
+            Stream body = request.InputStream;
+            Encoding bodyEncoding = request.ContentEncoding;
+            var ms = new MemoryStream(512);
+            body.CopyTo(ms);
+
+            return ms.ToArray();
         }
     }
 }

@@ -77,6 +77,17 @@ namespace ORA.Tracker.Routes.Tests
                 .Should()
                 .Equals(urlParams);
         }
+
+        [Fact]
+        public async void WhenGetBody_ShouldMatch()
+        {
+            string content = "It is a test content";
+
+            context = await listener.GenerateContext("/", HttpMethod.Post, content);
+            System.Text.Encoding.UTF8.GetString(testee.GetBody(context.Request))
+                .Should()
+                .Equals(content);
+        }
     }
 
     internal class MockRoute : Route
@@ -85,5 +96,6 @@ namespace ORA.Tracker.Routes.Tests
             : base() { }
 
         public string[] GetUrlParams(HttpListenerRequest request) => this.getUrlParams(request);
+        public byte[] GetBody(HttpListenerRequest request) => this.getBody(request);
     }
 }
