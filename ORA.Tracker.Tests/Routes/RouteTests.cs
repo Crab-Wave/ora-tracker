@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using Xunit;
 using FluentAssertions;
+using System.Text;
 
 using ORA.Tracker.Models;
 using ORA.Tracker.Tests.Utils;
@@ -81,7 +82,7 @@ namespace ORA.Tracker.Routes.Tests
         [Fact]
         public async void WhenGetBody_ShouldMatch()
         {
-            string content = "It is a test content";
+            byte[] content = Encoding.UTF8.GetBytes("It is a test content");
 
             context = await listener.GenerateContext("/", HttpMethod.Post, content);
             System.Text.Encoding.UTF8.GetString(testee.GetBody(context.Request))

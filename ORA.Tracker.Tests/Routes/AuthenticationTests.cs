@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http;
 using Xunit;
 using FluentAssertions;
+using System.Security.Cryptography;
 using System.Text;
 
 using ORA.Tracker.Models;
@@ -17,37 +18,11 @@ namespace ORA.Tracker.Routes.Tests
         private HttpListenerContext context;
 
         [Fact]
-        public async void WhenPostWithoutParameter_ShouldThrow_HttpListenerException()
-        {
-            string missingIdParameter = new Error("Missing id parameter").ToString();
-
-            context = await listener.GenerateContext("/", HttpMethod.Post);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Equals(missingIdParameter))
-                .Where(e => e.ErrorCode.Equals(400));
-        }
-
-        [Fact]
-        public async void WhenPostWithoutIdParameter_ShouldThrow_HttpListenerException()
-        {
-            string missingIdParameter = new Error("Missing id parameter").ToString();
-
-            context = await listener.GenerateContext("/", HttpMethod.Post, "key");
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Equals(missingIdParameter))
-                .Where(e => e.ErrorCode.Equals(400));
-        }
-
-        [Fact]
         public async void WhenPostWithoutBody_ShouldThrow_HttpListenerException()
         {
             string missingKey = new Error("Missing key").ToString();
 
-            context = await listener.GenerateContext("?id=test", HttpMethod.Post);
+            context = await listener.GenerateContext("/", HttpMethod.Post);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
@@ -56,16 +31,42 @@ namespace ORA.Tracker.Routes.Tests
         }
 
         [Fact]
-        public async void WhenPostWithInvalidKey_ShouldThrow_HttpListenerException()
+        public async void WhenPostWithTooSmallKey_ShouldThrow_HttpListenerException()
         {
             string invalidKeyStructure = new Error("Invalid key structure").ToString();
 
-            context = await listener.GenerateContext("?id=test", HttpMethod.Post, "invalidkey");
+            var key = new byte[15] { 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 114, 233, 1, 1 };
+            context = await listener.GenerateContext("/", HttpMethod.Post, key);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(invalidKeyStructure))
                 .Where(e => e.ErrorCode.Equals(400));
+        }
+
+        [Fact]
+        public async void WhenPostWithInvalidKey_ShouldThrow_HttpListenerException()
+        {
+            string invalidKeyStructure = new Error("Invalid key structure").ToString();
+
+            context = await listener.GenerateContext("/", HttpMethod.Post, Encoding.UTF8.GetBytes("invalidkeyinvalidkey"));
+            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+                .Should()
+                .Throw<HttpListenerException>()
+                .Where(e => e.Message.Equals(invalidKeyStructure))
+                .Where(e => e.ErrorCode.Equals(400));
+        }
+
+        [Fact]
+        public async void WhenPostWithValidKey_ShouldReturn_Token()
+        {
+            var csp = new RSACryptoServiceProvider();
+            byte[] publicKey = csp.ExportRSAPublicKey();
+
+            string invalidKeyStructure = new Error("Invalid key structure").ToString();
+
+            context = await listener.GenerateContext("/", HttpMethod.Post, publicKey);
+            testee.HandleRequest(context.Request, context.Response);
         }
 
         [Fact]

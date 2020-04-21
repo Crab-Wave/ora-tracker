@@ -25,7 +25,7 @@ namespace ORA.Tracker.Tests.Utils
         public MockupListener(int port)
             : this(port, new AuthenticationHeaderValue("Bearer", "credentials")) { }
 
-        public async Task<HttpListenerContext> GenerateContext(string path, HttpMethod method, string bodyContent = null)
+        public async Task<HttpListenerContext> GenerateContext(string path, HttpMethod method, byte[] bodyContent = null)
         {
             _ = this.makeRequest(method, this.listener_uri + path, bodyContent);
             HttpListenerContext context = await this.listener.GetContextAsync();
@@ -33,11 +33,11 @@ namespace ORA.Tracker.Tests.Utils
             return context;
         }
 
-        private async Task<HttpResponseMessage> makeRequest(HttpMethod method, string uri, string bodyContent)
+        private async Task<HttpResponseMessage> makeRequest(HttpMethod method, string uri, byte[] bodyContent)
         {
             HttpRequestMessage message;
             if (bodyContent != null)
-                message = new HttpRequestMessage(method, uri) { Content = new StringContent(bodyContent) };
+                message = new HttpRequestMessage(method, uri) { Content = new ByteArrayContent(bodyContent) };
             else
                 message = new HttpRequestMessage(method, uri);
 
