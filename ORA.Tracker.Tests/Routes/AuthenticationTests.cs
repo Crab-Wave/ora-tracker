@@ -12,7 +12,7 @@ namespace ORA.Tracker.Routes.Tests
 {
     public class AuthenticationTests
     {
-        private static readonly MockupListener listener = new MockupListener(15304);
+        private static readonly MockupListener listener = new MockupListener(15303);
 
         private Authentication testee = new Authentication();
         private HttpListenerContext context;

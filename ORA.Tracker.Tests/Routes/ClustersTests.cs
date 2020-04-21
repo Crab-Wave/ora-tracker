@@ -28,7 +28,7 @@ namespace ORA.Tracker.Routes.Tests
         {
             ignoreErrors(() => ClusterDatabase.Init("../DatabaseTest"));
 
-            var c = new Cluster("test", Guid.NewGuid());
+            var c = new Cluster("test", Guid.NewGuid().ToString());
             ClusterDatabase.Put(c.id.ToString(), c);
 
             context = await listener.GenerateContext("/" + c.id.ToString(), HttpMethod.Get);
@@ -96,7 +96,7 @@ namespace ORA.Tracker.Routes.Tests
             var testee = new Clusters();
             HttpListenerContext context;
 
-            Cluster c = new Cluster("test", Guid.NewGuid());
+            Cluster c = new Cluster("test", Guid.NewGuid().ToString());
             ClusterDatabase.Put(c.id.ToString(), c);
 
             context = await listener.GenerateContext("/" + c.id.ToString(), HttpMethod.Delete);
