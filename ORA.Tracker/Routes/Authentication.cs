@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Security.Cryptography;
+using System.Linq;
 
 using ORA.Tracker.Models;
 using ORA.Tracker.Services;
@@ -9,7 +10,6 @@ namespace ORA.Tracker.Routes
 {
     public class Authentication : Route
     {
-        private static readonly string missingIdParameter = new Error("Missing id parameter").ToString();
         private static readonly string missingKey = new Error("Missing key").ToString();
         private static readonly string invalidKeyStructure = new Error("Invalid key structure").ToString();
 
@@ -18,22 +18,21 @@ namespace ORA.Tracker.Routes
 
         protected override byte[] post(HttpListenerRequest request, HttpListenerResponse response)
         {
-            string[] idValues = request.QueryString.GetValues("id");
-            if (idValues == null || idValues.Length < 1)
-                throw new HttpListenerException(400, missingIdParameter);
-
             if (!request.HasEntityBody)
                 throw new HttpListenerException(400, missingKey);
 
             byte[] publicKey = this.getBody(request);
-            string id = idValues[0];
+            if (publicKey.Length < 16)
+                throw new HttpListenerException(400, invalidKeyStructure);
+
+            string id = new Guid(publicKey.Take(16).ToArray()).ToString();
 
             byte[] token = TokenManager.Instance.NewToken();
             byte[] encryptedToken;
 
             try
             {
-                var csp = new RSACryptoServiceProvider(publicKey.Length);
+                var csp = new RSACryptoServiceProvider();
                 csp.ImportRSAPublicKey(publicKey, out int _);
                 encryptedToken = csp.Encrypt(token, true);
             }
