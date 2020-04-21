@@ -24,10 +24,5 @@ namespace ORA.Tracker.Services
 
             return authorizationValues[1];
         }
-
-        public static bool ValidateToken(string token)
-        {
-            return false;
-        }
     }
 }
