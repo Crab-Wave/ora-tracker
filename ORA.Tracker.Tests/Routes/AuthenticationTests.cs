@@ -9,11 +9,11 @@ using ORA.Tracker.Tests.Utils;
 
 namespace ORA.Tracker.Routes.Tests
 {
-    public class AuthentificationTests
+    public class AuthenticationTests
     {
         private static readonly MockupListener listener = new MockupListener(15304);
 
-        private Authentification testee = new Authentification();
+        private Authentication testee = new Authentication();
         private HttpListenerContext context;
 
         [Fact]

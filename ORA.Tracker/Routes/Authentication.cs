@@ -1,20 +1,18 @@
 using System;
 using System.Net;
 using System.Security.Cryptography;
-using System.Text;
-using System.IO;
 
 using ORA.Tracker.Models;
 
 namespace ORA.Tracker.Routes
 {
-    public class Authentification : Route
+    public class Authentication : Route
     {
         private static readonly string missingIdParameter = new Error("Missing id parameter").ToString();
         private static readonly string missingKey = new Error("Missing key").ToString();
         private static readonly string invalidKeyStructure = new Error("Invalid key structure").ToString();
 
-        public Authentification()
+        public Authentication()
             : base() { }
 
         protected override byte[] post(HttpListenerRequest request, HttpListenerResponse response)
