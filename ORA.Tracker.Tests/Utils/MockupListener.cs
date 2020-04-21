@@ -11,11 +11,9 @@ namespace ORA.Tracker.Tests.Utils
         private string listener_uri;
         private HttpListener listener;
 
-        public MockupListener(int port, AuthenticationHeaderValue authorization = null)
+        public MockupListener(int port)
         {
             this.client = new HttpClient();
-            if (authorization != null)
-                this.client.DefaultRequestHeaders.Authorization = authorization;
             this.listener_uri = $"http://localhost:{port}/";
             this.listener = new HttpListener() { Prefixes = { listener_uri } };
 
@@ -23,24 +21,31 @@ namespace ORA.Tracker.Tests.Utils
                 this.listener.Start();
         }
 
-        public MockupListener(int port, string credentials)
-            : this(port, new AuthenticationHeaderValue("Bearer", credentials)) { }
-
-        public async Task<HttpListenerContext> GenerateContext(string path, HttpMethod method, byte[] bodyContent = null)
+        public async Task<HttpListenerContext> GenerateContext(string path, HttpMethod method, byte[] bodyContent, string credentials)
         {
-            _ = this.makeRequest(method, this.listener_uri + path, bodyContent);
+            _ = this.makeRequest(method, this.listener_uri + path, bodyContent, credentials);
             HttpListenerContext context = await this.listener.GetContextAsync();
 
             return context;
         }
 
-        private async Task<HttpResponseMessage> makeRequest(HttpMethod method, string uri, byte[] bodyContent)
+        public async Task<HttpListenerContext> GenerateContext(string path, HttpMethod method) =>
+            await GenerateContext(path, method, null, null);
+
+        public async Task<HttpListenerContext> GenerateContext(string path, HttpMethod method, byte[] bodyContent) =>
+            await GenerateContext(path, method, bodyContent, null);
+
+        public async Task<HttpListenerContext> GenerateContext(string path, HttpMethod method, string credentials) =>
+            await GenerateContext(path, method, null, credentials);
+
+        private async Task<HttpResponseMessage> makeRequest(HttpMethod method, string uri, byte[] bodyContent, string credentials)
         {
-            HttpRequestMessage message;
+            HttpRequestMessage message = new HttpRequestMessage(method, uri);
+
             if (bodyContent != null)
-                message = new HttpRequestMessage(method, uri) { Content = new ByteArrayContent(bodyContent) };
-            else
-                message = new HttpRequestMessage(method, uri);
+                message.Content = new ByteArrayContent(bodyContent);
+            if (credentials != null)
+                message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", credentials);
 
             return await this.client.SendAsync(message);
         }
