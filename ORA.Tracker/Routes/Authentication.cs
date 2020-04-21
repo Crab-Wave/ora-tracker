@@ -3,6 +3,7 @@ using System.Net;
 using System.Security.Cryptography;
 
 using ORA.Tracker.Models;
+using ORA.Tracker.Services;
 
 namespace ORA.Tracker.Routes
 {
@@ -27,36 +28,23 @@ namespace ORA.Tracker.Routes
             byte[] publicKey = this.getBody(request);
             string id = idValues[0];
 
-            byte[] token = generateToken(32);
+            byte[] token = TokenManager.Instance.NewToken();
+            byte[] encryptedToken;
 
-            RSACryptoServiceProvider csp;
             try
             {
-                csp = new RSACryptoServiceProvider(publicKey.Length);
+                var csp = new RSACryptoServiceProvider(publicKey.Length);
                 csp.ImportRSAPublicKey(publicKey, out int _);
+                encryptedToken = csp.Encrypt(token, true);
             }
             catch (CryptographicException)
             {
                 throw new HttpListenerException(400, invalidKeyStructure);
             }
 
-            var encryptedToken = csp.Encrypt(token, true);
-
-            // TODO: hashmap id -> token
-            // TODO: hashmap token -> long    timestamp
+            TokenManager.Instance.RegisterToken(id, token);
 
             return encryptedToken;
-        }
-
-        private static byte[] generateToken(int length)
-        {
-            var rng = new Random();
-            var token = new byte[length];
-
-            for (int i = 0; i < length; i++)
-                token[i] = (byte) rng.Next(256);
-
-            return token;
         }
     }
 }
