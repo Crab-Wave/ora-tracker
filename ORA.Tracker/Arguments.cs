@@ -12,7 +12,7 @@ namespace ORA.Tracker
         {
             // Default values for argument fields
             int port = 3000;
-            string databasePath = "./Database";
+            string clusterDatabasePath = "./Database/Clusters";
             bool isHelpRequested = false;
 
             for (int i = 0; i < args.Length; i++)
@@ -34,7 +34,7 @@ namespace ORA.Tracker
                     if (++i >= args.Length)
                         throw new Exception($"Missing argument for '{args[i-1]}' option.");
 
-                    databasePath = args[i];
+                    clusterDatabasePath = args[i];
                 }
                 else
                 {
@@ -42,7 +42,7 @@ namespace ORA.Tracker
                 }
             }
 
-            return new Arguments(port, databasePath, isHelpRequested);
+            return new Arguments(port, clusterDatabasePath, isHelpRequested);
         }
 
         Arguments(int port, string databasePath, bool isHelpRequested)
