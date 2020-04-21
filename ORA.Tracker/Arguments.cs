@@ -5,7 +5,7 @@ namespace ORA.Tracker
     class Arguments
     {
         public int Port { get; }
-        public string DatabasePath { get; }
+        public string ClusterDatabasePath { get; }
         public bool IsHelpRequested { get; }
 
         public static Arguments Parse(string[] args)
@@ -45,10 +45,10 @@ namespace ORA.Tracker
             return new Arguments(port, clusterDatabasePath, isHelpRequested);
         }
 
-        Arguments(int port, string databasePath, bool isHelpRequested)
+        Arguments(int port, string clusterDatabasePath, bool isHelpRequested)
         {
             this.Port = port;
-            this.DatabasePath = databasePath;
+            this.ClusterDatabasePath = clusterDatabasePath;
             this.IsHelpRequested = isHelpRequested;
         }
     }

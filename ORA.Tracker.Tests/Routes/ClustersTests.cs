@@ -6,7 +6,7 @@ using FluentAssertions;
 using System.Text;
 
 using ORA.Tracker.Models;
-using ORA.Tracker.Services;
+using ORA.Tracker.Services.Databases;
 using ORA.Tracker.Tests.Utils;
 
 namespace ORA.Tracker.Routes.Tests
@@ -20,14 +20,14 @@ namespace ORA.Tracker.Routes.Tests
 
         public ClustersTests()
         {
-            ignoreErrors(() => Database.Init("../DatabaseTest"));
+            ignoreErrors(() => ClusterDatabase.Init("../DatabaseTest/Clusters"));
         }
 
         [Fact]
         public async void WhenGetExistingCluster_ShouldMatch()
         {
             var c = new Cluster("test", Guid.NewGuid());
-            Database.Put(c.id.ToString(), c);
+            ClusterDatabase.Put(c.id.ToString(), c);
 
             context = await listener.GenerateContext("/" + c.id.ToString(), HttpMethod.Get);
             testee.HandleRequest(context.Request, context.Response)
@@ -66,7 +66,7 @@ namespace ORA.Tracker.Routes.Tests
 
             string clusterId = Encoding.UTF8.GetString(testee.HandleRequest(context.Request, context.Response))
                 .Split(":")[1].Split("\"")[1].Split("\"")[0];   // TODO: Do this more cleanly
-            var c = Cluster.Deserialize(Database.Get(clusterId));
+            var c = Cluster.Deserialize(ClusterDatabase.Get(clusterId));
 
             c.Should().BeOfType<Cluster>().Which.name.Should().Be(clusterName);
         }
@@ -87,12 +87,11 @@ namespace ORA.Tracker.Routes.Tests
         [Fact]
         public async void WhenDeleteExistingCluster_ShouldReturn_EmptyBody()
         {
-            ignoreErrors(() => Database.Init("../DatabaseTest"));
             var testee = new Clusters();
             HttpListenerContext context;
 
             Cluster c = new Cluster("test", Guid.NewGuid());
-            Database.Put(c.id.ToString(), c);
+            ClusterDatabase.Put(c.id.ToString(), c);
 
             context = await listener.GenerateContext("/" + c.id.ToString(), HttpMethod.Delete);
             testee.HandleRequest(context.Request, context.Response)
@@ -117,7 +116,6 @@ namespace ORA.Tracker.Routes.Tests
         [Fact]
         public async void WhenDeleteWithoutClusterId_ShouldThrow_HttpListenerException()
         {
-            ignoreErrors(() => Database.Init("../DatabaseTest"));
             var testee = new Clusters();
             HttpListenerContext context;
 

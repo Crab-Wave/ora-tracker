@@ -6,9 +6,9 @@ using LevelDB;
 
 using ORA.Tracker.Models;
 
-namespace ORA.Tracker.Services
+namespace ORA.Tracker.Services.Databases
 {
-    public class Database
+    public class ClusterDatabase
     {
         private static DB database = null;
 

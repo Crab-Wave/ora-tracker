@@ -2,7 +2,7 @@ using System;
 using System.Net;
 
 using ORA.Tracker.Models;
-using ORA.Tracker.Services;
+using ORA.Tracker.Services.Databases;
 
 namespace ORA.Tracker.Routes
 {
@@ -19,11 +19,11 @@ namespace ORA.Tracker.Routes
         {
             var urlParams = this.getUrlParams(request);
             if (urlParams.Length < 1 || urlParams[0] == "")
-                return Database.GetAll();
+                return ClusterDatabase.GetAll();
 
             try
             {
-                return Database.Get(urlParams[0]);
+                return ClusterDatabase.Get(urlParams[0]);
             }
             catch (ArgumentNullException)
             {
@@ -40,7 +40,7 @@ namespace ORA.Tracker.Routes
                 throw new HttpListenerException(400, missingNameParameter);
 
             Cluster cluster = new Cluster(nameValues[0], Guid.NewGuid());   // TODO: pass author guid
-            Database.Put(cluster.id.ToString(), cluster);
+            ClusterDatabase.Put(cluster.id.ToString(), cluster);
 
             return cluster.SerializeId();
         }
@@ -55,10 +55,10 @@ namespace ORA.Tracker.Routes
 
             try
             {
-                Database.Get(urlParams[0]);
+                ClusterDatabase.Get(urlParams[0]);
 
                 // if cluster exists
-                Database.Delete(urlParams[0]);
+                ClusterDatabase.Delete(urlParams[0]);
                 return new byte[0];
             }
             catch (ArgumentNullException)
