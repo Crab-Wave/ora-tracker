@@ -24,7 +24,7 @@ namespace ORA.Tracker.Routes
             if (urlParams == null || !urlParams.ContainsKey("id") || urlParams["id"] == "")
                 return ClusterDatabase.GetAll();
 
-            var clusterJsonBytes = ClusterDatabase.Get(urlParams["id"]);
+            var clusterJsonBytes = ClusterDatabase.GetBytes(urlParams["id"]);
             if (clusterJsonBytes == null)
                 throw new HttpListenerException(404, invalidClusterId);
 
@@ -62,11 +62,9 @@ namespace ORA.Tracker.Routes
 
             TokenManager.Instance.RefreshToken(token);
 
-            var clusterJsonBytes = ClusterDatabase.Get(urlParams["id"]);
-            if (clusterJsonBytes == null)
+            var c = ClusterDatabase.Get(urlParams["id"]);
+            if (c == null)
                 throw new HttpListenerException(404, invalidClusterId);
-
-            var c = Cluster.Deserialize(clusterJsonBytes);
             if (TokenManager.Instance.GetIdFromToken(token) != c.owner)
                 throw new HttpListenerException(401, unauthorizedAction);
 

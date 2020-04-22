@@ -38,12 +38,24 @@ namespace ORA.Tracker.Services.Databases
             database.Put(Encoding.UTF8.GetBytes(key), cluster.Serialize());
         }
 
-        public static byte[] Get(string key)
+        public static byte[] GetBytes(string key)
         {
             if (database == null)
                 throw new Exception("ClusterDatabase is not initialized");
 
             return database.Get(Encoding.UTF8.GetBytes(key));
+        }
+
+        public static Cluster Get(string key)
+        {
+            if (database == null)
+                throw new Exception("ClusterDatabase is not initialized");
+
+            byte[] jsonBytes = GetBytes(key);
+            if (jsonBytes == null)
+                return null;
+
+            return Cluster.Deserialize(jsonBytes);
         }
 
         public static byte[] GetAll()

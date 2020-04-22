@@ -87,7 +87,7 @@ namespace ORA.Tracker.Routes.Tests
 
             string clusterId = Encoding.UTF8.GetString(testee.HandleRequest(context.Request, context.Response))
                 .Split(":")[1].Split("\"")[1].Split("\"")[0];   // TODO: Do this more cleanly
-            var c = Cluster.Deserialize(ClusterDatabase.Get(clusterId));
+            var c = ClusterDatabase.Get(clusterId);
 
             c.Should().BeOfType<Cluster>().Which.name.Should().Be(clusterName);
         }
