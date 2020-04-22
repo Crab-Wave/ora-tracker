@@ -47,6 +47,8 @@ namespace ORA.Tracker.Routes
             if (!TokenManager.Instance.IsValidToken(token))
                 throw new HttpListenerException(400, invalidToken);
 
+            TokenManager.Instance.RefreshToken(token);
+
             Cluster cluster = new Cluster(nameValues[0], TokenManager.Instance.GetIdFromToken(token));
             ClusterDatabase.Put(cluster.id.ToString(), cluster);
 
@@ -63,6 +65,8 @@ namespace ORA.Tracker.Routes
 
             if (!TokenManager.Instance.IsValidToken(token))
                 throw new HttpListenerException(400, invalidToken);
+
+            TokenManager.Instance.RefreshToken(token);
 
             try
             {
