@@ -1,10 +1,10 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using Xunit;
 using FluentAssertions;
 using System.Security.Cryptography;
 using System.Text;
-
 using ORA.Tracker.Models;
 using ORA.Tracker.Tests.Utils;
 
@@ -35,8 +35,8 @@ namespace ORA.Tracker.Routes.Tests
         {
             string invalidKeyStructure = new Error("Invalid key structure").ToString();
 
-            var key = new byte[15] { 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 114, 233, 1, 1 };
-            context = await listener.GenerateContext("/", HttpMethod.Post, key);
+            var key = Convert.ToBase64String(new byte[15] { 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 114, 233, 1, 1 });
+            context = await listener.GenerateContext("/", HttpMethod.Post, Encoding.UTF8.GetBytes(key));
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
@@ -49,7 +49,8 @@ namespace ORA.Tracker.Routes.Tests
         {
             string invalidKeyStructure = new Error("Invalid key structure").ToString();
 
-            context = await listener.GenerateContext("/", HttpMethod.Post, Encoding.UTF8.GetBytes("invalidkeyinvalidkey"));
+            context = await listener.GenerateContext("/", HttpMethod.Post,
+                Encoding.UTF8.GetBytes(Convert.ToBase64String(Encoding.UTF8.GetBytes("invalidkeyinvalidkey"))));
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
@@ -63,7 +64,7 @@ namespace ORA.Tracker.Routes.Tests
             var csp = new RSACryptoServiceProvider();
             byte[] publicKey = csp.ExportRSAPublicKey();
 
-            context = await listener.GenerateContext("/", HttpMethod.Post, publicKey);
+            context = await listener.GenerateContext("/", HttpMethod.Post, Encoding.UTF8.GetBytes(Convert.ToBase64String(publicKey)));
             testee.HandleRequest(context.Request, context.Response);
 
             // TODO: write test

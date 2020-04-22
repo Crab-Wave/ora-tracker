@@ -4,7 +4,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-
 using ORA.Tracker.Models;
 using ORA.Tracker.Services;
 
@@ -16,18 +15,23 @@ namespace ORA.Tracker.Routes
         private static readonly string invalidKeyStructure = new Error("Invalid key structure").ToString();
 
         public Authentication()
-            : base() { }
+            : base()
+        {
+        }
 
-        protected override byte[] post(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams = null)
+        protected override byte[] post(HttpListenerRequest request, HttpListenerResponse response,
+            Dictionary<string, string> urlParams = null)
         {
             if (!request.HasEntityBody)
                 throw new HttpListenerException(400, missingKey);
 
-            byte[] publicKey = this.getBody(request);
+            byte[] publicKey = Convert.FromBase64String(Encoding.Default.GetString(this.getBody(request)));
+
             if (publicKey.Length < 16)
                 throw new HttpListenerException(400, invalidKeyStructure);
 
             string id = new Guid(publicKey.Take(16).ToArray()).ToString();
+            Console.WriteLine(id);
             string token;
             byte[] encryptedToken;
 
@@ -50,7 +54,7 @@ namespace ORA.Tracker.Routes
             if (!TokenManager.Instance.IsRegistered(id))
                 TokenManager.Instance.RegisterToken(id, token);
 
-            return encryptedToken;
+            return Encoding.UTF8.GetBytes(Convert.ToBase64String(encryptedToken));
         }
     }
 }
