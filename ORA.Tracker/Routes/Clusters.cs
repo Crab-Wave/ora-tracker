@@ -24,14 +24,11 @@ namespace ORA.Tracker.Routes
             if (urlParams == null || !urlParams.ContainsKey("id") || urlParams["id"] == "")
                 return ClusterDatabase.GetAll();
 
-            try
-            {
-                return ClusterDatabase.Get(urlParams["id"]);
-            }
-            catch (ArgumentNullException)
-            {
+            var clusterJsonBytes = ClusterDatabase.Get(urlParams["id"]);
+            if (clusterJsonBytes == null)
                 throw new HttpListenerException(404, invalidClusterId);
-            }
+
+            return clusterJsonBytes;
         }
 
         protected override byte[] post(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams = null)
@@ -65,21 +62,16 @@ namespace ORA.Tracker.Routes
 
             TokenManager.Instance.RefreshToken(token);
 
-            try
-            {
-                var c = Cluster.Deserialize(ClusterDatabase.Get(urlParams["id"]));
-
-                if (TokenManager.Instance.GetIdFromToken(token) != c.owner)
-                    throw new HttpListenerException(401, unauthorizedAction);
-
-                // if cluster exists
-                ClusterDatabase.Delete(urlParams["id"]);
-                return new byte[0];
-            }
-            catch (ArgumentNullException)
-            {
+            var clusterJsonBytes = ClusterDatabase.Get(urlParams["id"]);
+            if (clusterJsonBytes == null)
                 throw new HttpListenerException(404, invalidClusterId);
-            }
+
+            var c = Cluster.Deserialize(clusterJsonBytes);
+            if (TokenManager.Instance.GetIdFromToken(token) != c.owner)
+                throw new HttpListenerException(401, unauthorizedAction);
+
+            ClusterDatabase.Delete(urlParams["id"]);
+            return new byte[0];
         }
     }
 }

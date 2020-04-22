@@ -35,7 +35,7 @@ namespace ORA.Tracker.Services.Databases
             if (database == null)
                 throw new Exception("ClusterDatabase is not initialized");
 
-            database.Put(key, Encoding.UTF8.GetString(cluster.Serialize()));
+            database.Put(Encoding.UTF8.GetBytes(key), cluster.Serialize());
         }
 
         public static byte[] Get(string key)
@@ -43,7 +43,7 @@ namespace ORA.Tracker.Services.Databases
             if (database == null)
                 throw new Exception("ClusterDatabase is not initialized");
 
-            return Encoding.UTF8.GetBytes(database.Get(key));
+            return database.Get(Encoding.UTF8.GetBytes(key));
         }
 
         public static byte[] GetAll()
