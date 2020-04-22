@@ -30,7 +30,7 @@ namespace ORA.Tracker.Routes
             if (!TokenManager.Instance.IsValidToken(token))
                 throw new HttpListenerException(400, invalidToken);
 
-             var c = ClusterDatabase.Get(urlParams["id"])
+            var c = ClusterDatabase.Get(urlParams["id"])
                 ?? throw new HttpListenerException(404, invalidClusterId);
             if (!c.members.ContainsKey(TokenManager.Instance.GetIdFromToken(token)))
                 throw new HttpListenerException(401, unauthorizedAction);
@@ -64,7 +64,7 @@ namespace ORA.Tracker.Routes
             c.members.Add(id, name);
             ClusterDatabase.Put(urlParams["id"], c);
 
-            return new byte[] {};
+            return new byte[] { };
         }
     }
 }
