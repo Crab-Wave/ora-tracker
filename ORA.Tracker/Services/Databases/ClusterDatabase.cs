@@ -52,10 +52,8 @@ namespace ORA.Tracker.Services.Databases
                 throw new Exception("ClusterDatabase is not initialized");
 
             byte[] jsonBytes = GetBytes(key);
-            if (jsonBytes == null)
-                return null;
 
-            return Cluster.Deserialize(jsonBytes);
+            return jsonBytes != null ? Cluster.Deserialize(jsonBytes) : null;
         }
 
         public static byte[] GetAll()
@@ -71,7 +69,7 @@ namespace ORA.Tracker.Services.Databases
             writer.WriteStartArray();
             for (iterator.SeekToFirst(); iterator.IsValid(); iterator.Next())
             {
-                cluster = JsonSerializer.Deserialize<Cluster>(database.Get(iterator.KeyAsString()));
+                cluster = Get(iterator.KeyAsString());
                 writer.WriteStartObject();
 
                 writer.WriteString("id", cluster.id.ToString());

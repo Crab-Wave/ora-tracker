@@ -24,9 +24,8 @@ namespace ORA.Tracker.Routes
             if (urlParams == null || !urlParams.ContainsKey("id") || urlParams["id"] == "")
                 return ClusterDatabase.GetAll();
 
-            var clusterJsonBytes = ClusterDatabase.GetBytes(urlParams["id"]);
-            if (clusterJsonBytes == null)
-                throw new HttpListenerException(404, invalidClusterId);
+            var clusterJsonBytes = ClusterDatabase.GetBytes(urlParams["id"])
+                ?? throw new HttpListenerException(404, invalidClusterId);
 
             return clusterJsonBytes;
         }
@@ -35,16 +34,15 @@ namespace ORA.Tracker.Routes
         {
             string token = Services.Authorization.GetToken(request.Headers);
 
-            string[] nameValues = request.QueryString.GetValues("name");
-            if (nameValues == null || nameValues.Length < 1)
-                throw new HttpListenerException(400, missingNameParameter);
+            string name = request.QueryString.GetValues("name")?[0]
+                ?? throw new HttpListenerException(400, missingNameParameter);
 
             if (!TokenManager.Instance.IsValidToken(token))
                 throw new HttpListenerException(400, invalidToken);
 
             TokenManager.Instance.RefreshToken(token);
 
-            Cluster cluster = new Cluster(nameValues[0], TokenManager.Instance.GetIdFromToken(token));
+            Cluster cluster = new Cluster(name, TokenManager.Instance.GetIdFromToken(token));
             ClusterDatabase.Put(cluster.id.ToString(), cluster);
 
             return cluster.SerializeId();
@@ -62,9 +60,8 @@ namespace ORA.Tracker.Routes
 
             TokenManager.Instance.RefreshToken(token);
 
-            var c = ClusterDatabase.Get(urlParams["id"]);
-            if (c == null)
-                throw new HttpListenerException(404, invalidClusterId);
+            var c = ClusterDatabase.Get(urlParams["id"])
+                ?? throw new HttpListenerException(404, invalidClusterId);
             if (TokenManager.Instance.GetIdFromToken(token) != c.owner)
                 throw new HttpListenerException(401, unauthorizedAction);
 
