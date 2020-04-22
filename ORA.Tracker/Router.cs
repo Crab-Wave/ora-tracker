@@ -29,29 +29,37 @@ namespace ORA.Tracker
         {
             string path = "/" + (context.Request.RawUrl.Split("?")[0].Split("/")[1] ?? "");
             byte[] body = new byte[0];
+            bool routeHandled = false;
 
-            if (this.isRouteHandled(path))
+            try
             {
-                try
+                foreach (var route in this.routes.Keys)
                 {
-                    body = this.routes[path].HandleRequest(context.Request, context.Response);
+                    if (this.isPathMatching(path, route))
+                    {
+                        routeHandled = true;
+                        body = this.routes[route].HandleRequest(context.Request, context.Response);
+                        break;
+                    }
                 }
-                catch (HttpListenerException e)
-                {
-                    logger.Error(e);
 
-                    context.Response.StatusCode = e.ErrorCode;
-                    body = System.Text.Encoding.UTF8.GetBytes(e.Message);
-                }
-                catch (Exception e)
-                {
-                    logger.Error(e);
-
-                    context.Response.StatusCode = 520;
-                    body = unknownError;
-                }
             }
-            else
+            catch (HttpListenerException e)
+            {
+                logger.Error(e);
+
+                context.Response.StatusCode = e.ErrorCode;
+                body = System.Text.Encoding.UTF8.GetBytes(e.Message);
+            }
+            catch (Exception e)
+            {
+                logger.Error(e);
+
+                context.Response.StatusCode = 520;
+                body = unknownError;
+            }
+
+            if (!routeHandled)
             {
                 logger.Error("Unhandled route");
 
@@ -63,7 +71,13 @@ namespace ORA.Tracker
             this.sendResponse(body, context.Response);
         }
 
-        private bool isRouteHandled(string path) => this.routes.ContainsKey(path);
+        private bool isPathMatching(string path, string route)
+        {
+            int i = 0, j = 0;
+            while (i < path.Length && j < route.Length)
+                i++;
+            return path == route;
+        }
 
         private bool sendResponse(byte[] buffer, HttpListenerResponse response)
         {
