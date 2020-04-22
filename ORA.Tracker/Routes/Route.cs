@@ -13,11 +13,11 @@ namespace ORA.Tracker.Routes
         private static string methodNotAllowed = new Error("Method Not Allowed").ToString();
         private static string notFound = new Error("Not Found").ToString();
 
-        private Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, byte[]>> callbacks;
+        private Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, Dictionary<string, string>, byte[]>> callbacks;
 
         public Route()
         {
-            this.callbacks = new Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, byte[]>>
+            this.callbacks = new Dictionary<string, Func<HttpListenerRequest, HttpListenerResponse, Dictionary<string, string>, byte[]>>
             {
                 { "GET", this.get },
                 { "HEAD", this.head },
@@ -28,32 +28,32 @@ namespace ORA.Tracker.Routes
             };
         }
 
-        public byte[] HandleRequest(HttpListenerRequest request, HttpListenerResponse response)
+        public byte[] HandleRequest(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams = null)
         {
             string httpMethod = request.HttpMethod;
 
             if (this.callbacks.ContainsKey(httpMethod))
-                return this.callbacks[httpMethod](request, response);
+                return this.callbacks[httpMethod](request, response, urlParams);
 
             throw new HttpListenerException(405, methodNotAllowed);
         }
 
-        protected virtual byte[] get(HttpListenerRequest request, HttpListenerResponse response)
+        protected virtual byte[] get(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams)
             => throw new HttpListenerException(404, notFound);
 
-        protected virtual byte[] head(HttpListenerRequest request, HttpListenerResponse response)
+        protected virtual byte[] head(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams)
             => new byte[0];      // Head should return empty body
 
-        protected virtual byte[] post(HttpListenerRequest request, HttpListenerResponse response)
+        protected virtual byte[] post(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams)
             => throw new HttpListenerException(404, notFound);
 
-        protected virtual byte[] put(HttpListenerRequest request, HttpListenerResponse response)
+        protected virtual byte[] put(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams)
             => throw new HttpListenerException(404, notFound);
 
-        protected virtual byte[] delete(HttpListenerRequest request, HttpListenerResponse response)
+        protected virtual byte[] delete(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams)
             => throw new HttpListenerException(404, notFound);
 
-        protected virtual byte[] options(HttpListenerRequest request, HttpListenerResponse response)
+        protected virtual byte[] options(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams)
             => throw new HttpListenerException(404, notFound);
 
         protected string[] getUrlParams(HttpListenerRequest request)

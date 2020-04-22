@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using System.Collections.Generic;
 using System.Linq;
 
 using ORA.Tracker.Models;
@@ -17,7 +18,7 @@ namespace ORA.Tracker.Routes
         public Authentication()
             : base() { }
 
-        protected override byte[] post(HttpListenerRequest request, HttpListenerResponse response)
+        protected override byte[] post(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams = null)
         {
             if (!request.HasEntityBody)
                 throw new HttpListenerException(400, missingKey);

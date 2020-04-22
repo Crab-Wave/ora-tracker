@@ -27,18 +27,19 @@ namespace ORA.Tracker
 
         public void HandleRequest(HttpListenerContext context)
         {
-            string path = "/" + (context.Request.RawUrl.Split("?")[0].Split("/")[1] ?? "");
-            byte[] body = new byte[0];
+            string path = context.Request.RawUrl.Split("?")[0];
+            Dictionary<string, string> urlParams;
+            var body = new byte[0];
             bool routeHandled = false;
 
             try
             {
                 foreach (var route in this.routes.Keys)
                 {
-                    if (this.isPathMatching(path, route))
+                    if (this.matchRoute(path, route, out urlParams))
                     {
                         routeHandled = true;
-                        body = this.routes[route].HandleRequest(context.Request, context.Response);
+                        body = this.routes[route].HandleRequest(context.Request, context.Response, urlParams);
                         break;
                     }
                 }
@@ -71,12 +72,55 @@ namespace ORA.Tracker
             this.sendResponse(body, context.Response);
         }
 
-        private bool isPathMatching(string path, string route)
+        private bool matchRoute(string path, string route, out Dictionary<string, string> urlParams)
         {
+            urlParams = new Dictionary<string, string>();
+            string name, param;
             int i = 0, j = 0;
+
             while (i < path.Length && j < route.Length)
-                i++;
-            return path == route;
+            {
+                if (route[j] == '{')
+                {
+                    // Reads the name of the param and advance to next /
+                    name = "";
+                    j += 1;
+                    while (j < route.Length && route[j] != '}')
+                        name += route[j++];
+                    j += 1;
+
+                    // Reads the value of the param
+                    param = "";
+                    while (i < path.Length && path[i] != '/')
+                        param += path[i++];
+
+                    urlParams.Add(name, param);
+                }
+
+                if (i < path.Length && j < route.Length && path[i] != route[j])
+                {
+                    urlParams = null;
+                    return false;
+                }
+
+                i += 1;
+                j += 1;
+            }
+
+            if (i >= path.Length && (j < route.Length && route[j] == '{' || j+1 < route.Length && route[j+1] == '{'))
+            {
+                name = "";
+                j += j == '{' ? 1 : 2;
+                while (j < route.Length && route[j] != '}')
+                    name += route[j++];
+                j += 1;
+
+                urlParams.Add(name, "");
+            }
+
+            if (!(i >= path.Length && j >= route.Length))
+                urlParams = null;
+            return i >= path.Length && j >= route.Length;
         }
 
         private bool sendResponse(byte[] buffer, HttpListenerResponse response)

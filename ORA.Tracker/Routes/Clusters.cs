@@ -1,6 +1,6 @@
 using System;
 using System.Net;
-using System.Text;
+using System.Collections.Generic;
 
 using ORA.Tracker.Models;
 using ORA.Tracker.Services.Databases;
@@ -19,15 +19,14 @@ namespace ORA.Tracker.Routes
         public Clusters()
             : base() { }
 
-        protected override byte[] get(HttpListenerRequest request, HttpListenerResponse response)
+        protected override byte[] get(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams)
         {
-            var urlParams = this.getUrlParams(request);
-            if (urlParams.Length < 1 || urlParams[0] == "")
+            if (urlParams == null || !urlParams.ContainsKey("id") || urlParams["id"] == "")
                 return ClusterDatabase.GetAll();
 
             try
             {
-                return ClusterDatabase.Get(urlParams[0]);
+                return ClusterDatabase.Get(urlParams["id"]);
             }
             catch (ArgumentNullException)
             {
@@ -35,10 +34,9 @@ namespace ORA.Tracker.Routes
             }
         }
 
-        protected override byte[] post(HttpListenerRequest request, HttpListenerResponse response)
+        protected override byte[] post(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams = null)
         {
             string token = Services.Authorization.GetToken(request.Headers);
-            Console.WriteLine(token);
 
             string[] nameValues = request.QueryString.GetValues("name");
             if (nameValues == null || nameValues.Length < 1)
@@ -55,12 +53,11 @@ namespace ORA.Tracker.Routes
             return cluster.SerializeId();
         }
 
-        protected override byte[] delete(HttpListenerRequest request, HttpListenerResponse response)
+        protected override byte[] delete(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams)
         {
             string token = Services.Authorization.GetToken(request.Headers);
 
-            var urlParams = this.getUrlParams(request);
-            if (urlParams.Length < 1 || urlParams[0] == "")
+            if (urlParams == null || !urlParams.ContainsKey("id") || urlParams["id"] == "")
                 throw new HttpListenerException(400, missingClusterId);
 
             if (!TokenManager.Instance.IsValidToken(token))
@@ -70,13 +67,13 @@ namespace ORA.Tracker.Routes
 
             try
             {
-                var c = Cluster.Deserialize(ClusterDatabase.Get(urlParams[0]));
+                var c = Cluster.Deserialize(ClusterDatabase.Get(urlParams["id"]));
 
                 if (TokenManager.Instance.GetIdFromToken(token) != c.owner)
                     throw new HttpListenerException(401, unauthorizedAction);
 
                 // if cluster exists
-                ClusterDatabase.Delete(urlParams[0]);
+                ClusterDatabase.Delete(urlParams["id"]);
                 return new byte[0];
             }
             catch (ArgumentNullException)

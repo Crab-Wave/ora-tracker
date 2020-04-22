@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Collections.Generic;
 
 namespace ORA.Tracker.Routes
 {
@@ -10,7 +11,7 @@ namespace ORA.Tracker.Routes
         public Root()
             : base() { }
 
-        protected override byte[] get(HttpListenerRequest request, HttpListenerResponse response)
+        protected override byte[] get(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams = null)
             => welcomeMessage;
     }
 }
