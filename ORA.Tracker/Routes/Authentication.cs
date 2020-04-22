@@ -31,7 +31,6 @@ namespace ORA.Tracker.Routes
                 throw new HttpListenerException(400, invalidKeyStructure);
 
             string id = new Guid(publicKey.Take(16).ToArray()).ToString();
-            Console.WriteLine(id);
             string token;
             byte[] encryptedToken;
 
