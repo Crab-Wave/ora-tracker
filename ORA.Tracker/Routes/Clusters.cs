@@ -37,7 +37,8 @@ namespace ORA.Tracker.Routes
 
         protected override byte[] post(HttpListenerRequest request, HttpListenerResponse response)
         {
-            byte[] token = Encoding.UTF8.GetBytes(Services.Authorization.GetToken(request.Headers));
+            string token = Services.Authorization.GetToken(request.Headers);
+            Console.WriteLine(token);
 
             string[] nameValues = request.QueryString.GetValues("name");
             if (nameValues == null || nameValues.Length < 1)
@@ -54,7 +55,7 @@ namespace ORA.Tracker.Routes
 
         protected override byte[] delete(HttpListenerRequest request, HttpListenerResponse response)
         {
-            byte[] token = Encoding.UTF8.GetBytes(Services.Authorization.GetToken(request.Headers));
+            string token = Services.Authorization.GetToken(request.Headers);
 
             var urlParams = this.getUrlParams(request);
             if (urlParams.Length < 1 || urlParams[0] == "")

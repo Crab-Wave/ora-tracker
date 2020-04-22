@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Security.Cryptography;
+using System.Text;
 using System.Linq;
 
 using ORA.Tracker.Models;
@@ -27,14 +28,14 @@ namespace ORA.Tracker.Routes
 
             string id = new Guid(publicKey.Take(16).ToArray()).ToString();
 
-            byte[] token = TokenManager.Instance.NewToken();
+            string token = TokenManager.Instance.NewToken();
             byte[] encryptedToken;
 
             try
             {
                 var csp = new RSACryptoServiceProvider();
                 csp.ImportRSAPublicKey(publicKey, out int _);
-                encryptedToken = csp.Encrypt(token, true);
+                encryptedToken = csp.Encrypt(Encoding.UTF8.GetBytes(token), true);
             }
             catch (CryptographicException)
             {

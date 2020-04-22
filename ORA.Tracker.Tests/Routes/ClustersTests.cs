@@ -7,6 +7,7 @@ using System.Text;
 
 using ORA.Tracker.Models;
 using ORA.Tracker.Services.Databases;
+using ORA.Tracker.Services;
 using ORA.Tracker.Tests.Utils;
 
 namespace ORA.Tracker.Routes.Tests
@@ -17,17 +18,20 @@ namespace ORA.Tracker.Routes.Tests
 
         private Clusters testee = new Clusters();
         private HttpListenerContext context;
+        private string token;
 
         public ClustersTests()
         {
             ignoreErrors(() => ClusterDatabase.Init("../DatabaseTest"));
+
+            token = TokenManager.Instance.NewToken();
+            if (!TokenManager.Instance.IsTokenRegistered(token))
+                TokenManager.Instance.RegisterToken(Guid.NewGuid().ToString(), token);
         }
 
         [Fact]
         public async void WhenGetExistingCluster_ShouldMatch()
         {
-            ignoreErrors(() => ClusterDatabase.Init("../DatabaseTest"));
-
             var c = new Cluster("test", Guid.NewGuid().ToString());
             ClusterDatabase.Put(c.id.ToString(), c);
 
@@ -61,12 +65,23 @@ namespace ORA.Tracker.Routes.Tests
         }
 
         [Fact]
+        public async void WhenPostWithoutCredentials_ShouldThrow_HttpListenerException()
+        {
+            string missingCredentials = new Error("Missing Credentials").ToString();
+
+            context = await listener.GenerateContext("?name=name", HttpMethod.Post);
+            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+                .Should()
+                .Throw<HttpListenerException>()
+                .Where(e => e.Message.Equals(missingCredentials))
+                .Where(e => e.ErrorCode.Equals(401));
+        }
+
+        [Fact]
         public async void WhenPost_ShouldCreateCluster()
         {
-            ignoreErrors(() => ClusterDatabase.Init("../DatabaseTest"));
-
             string clusterName = "test";
-            context = await listener.GenerateContext($"?name={clusterName}", HttpMethod.Post);
+            context = await listener.GenerateContext($"?name={clusterName}", HttpMethod.Post, token);
 
             string clusterId = Encoding.UTF8.GetString(testee.HandleRequest(context.Request, context.Response))
                 .Split(":")[1].Split("\"")[1].Split("\"")[0];   // TODO: Do this more cleanly
@@ -80,7 +95,7 @@ namespace ORA.Tracker.Routes.Tests
         {
             string missingNameParameter = new Error("Missing name Parameter").ToString();
 
-            context = await listener.GenerateContext("/", HttpMethod.Post);
+            context = await listener.GenerateContext("/", HttpMethod.Post, token);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
@@ -89,17 +104,41 @@ namespace ORA.Tracker.Routes.Tests
         }
 
         [Fact]
-        public async void WhenDeleteExistingCluster_ShouldReturn_EmptyBody()
+        public async void WhenDeleteWithoutCredentials_ShouldThrow_HttpListenerException()
         {
-            ignoreErrors(() => ClusterDatabase.Init("../DatabaseTest"));
+            string missingCredentials = new Error("Missing Credentials").ToString();
 
-            var testee = new Clusters();
-            HttpListenerContext context;
+            context = await listener.GenerateContext("/" + "id", HttpMethod.Delete);
+            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+                .Should()
+                .Throw<HttpListenerException>()
+                .Where(e => e.Message.Equals(missingCredentials))
+                .Where(e => e.ErrorCode.Equals(401));
+        }
 
-            Cluster c = new Cluster("test", Guid.NewGuid().ToString());
+        [Fact]
+        public async void WhenDeleteAndUnauthorized_ShouldThrow_HttpListenerException()
+        {
+            string unauthorizedAction = new Error("Unauthorized action").ToString();
+
+            Cluster c = new Cluster("test", "notsameid");
             ClusterDatabase.Put(c.id.ToString(), c);
 
-            context = await listener.GenerateContext("/" + c.id.ToString(), HttpMethod.Delete);
+            context = await listener.GenerateContext("/" + c.id.ToString(), HttpMethod.Delete, token);
+            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+                .Should()
+                .Throw<HttpListenerException>()
+                .Where(e => e.Message.Equals(unauthorizedAction))
+                .Where(e => e.ErrorCode.Equals(401));
+        }
+
+        [Fact]
+        public async void WhenDeleteExistingClusterAndAuthorized_ShouldReturn_EmptyBody()
+        {
+            Cluster c = new Cluster("test", TokenManager.Instance.GetIdFromToken(token));
+            ClusterDatabase.Put(c.id.ToString(), c);
+
+            context = await listener.GenerateContext("/" + c.id.ToString(), HttpMethod.Delete, token);
             testee.HandleRequest(context.Request, context.Response)
                 .Should()
                 .Equals(new byte[0]);
@@ -111,7 +150,7 @@ namespace ORA.Tracker.Routes.Tests
             string inexistingId = "test";
             string invalidClusterId = new Error("Invalid Cluster id").ToString();
 
-            context = await listener.GenerateContext("/" + inexistingId, HttpMethod.Delete);
+            context = await listener.GenerateContext("/" + inexistingId, HttpMethod.Delete, token);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
@@ -122,12 +161,9 @@ namespace ORA.Tracker.Routes.Tests
         [Fact]
         public async void WhenDeleteWithoutClusterId_ShouldThrow_HttpListenerException()
         {
-            var testee = new Clusters();
-            HttpListenerContext context;
-
             string missingClusterId = new Error("Missing Cluster id").ToString();
 
-            context = await listener.GenerateContext("/", HttpMethod.Delete);
+            context = await listener.GenerateContext("/", HttpMethod.Delete, token);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
