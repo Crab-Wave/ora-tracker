@@ -58,10 +58,35 @@ namespace ORA.Tracker.Routes
 
             var c = ClusterDatabase.Get(urlParams["id"])
                 ?? throw new HttpListenerException(404, invalidClusterId);
+            // TODO: Check admin ?
             if (TokenManager.Instance.GetIdFromToken(token) != c.owner)
                 throw new HttpListenerException(401, unauthorizedAction);
 
             c.members.Add(id, name);
+            ClusterDatabase.Put(urlParams["id"], c);
+
+            return new byte[] { };
+        }
+
+        protected override byte[] delete(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams)
+        {
+            string token = Services.Authorization.GetToken(request.Headers);
+
+            string id = request.QueryString.GetValues("id")?[0]
+                ?? throw new HttpListenerException(400, missingMemberId);
+
+            if (!TokenManager.Instance.IsValidToken(token))
+                throw new HttpListenerException(400, invalidToken);
+
+            TokenManager.Instance.RefreshToken(token);
+
+            var c = ClusterDatabase.Get(urlParams["id"])
+                ?? throw new HttpListenerException(404, invalidClusterId);
+            // TODO: Check admin ?
+            if (TokenManager.Instance.GetIdFromToken(token) != c.owner)
+                throw new HttpListenerException(401, unauthorizedAction);
+
+            c.members.Remove(id);
             ClusterDatabase.Put(urlParams["id"], c);
 
             return new byte[] { };
