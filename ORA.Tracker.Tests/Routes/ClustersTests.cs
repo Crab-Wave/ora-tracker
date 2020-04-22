@@ -50,7 +50,7 @@ namespace ORA.Tracker.Routes.Tests
 
             context = await listener.GenerateContext("/", HttpMethod.Get);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response,
-                    new Dictionary<string, string> { { "id", inexistingId } } ))
+                    new Dictionary<string, string> { { "id", inexistingId } }))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(invalidClusterId))
