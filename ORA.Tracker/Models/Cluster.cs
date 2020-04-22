@@ -81,5 +81,6 @@ namespace ORA.Tracker.Models
             JsonSerializer.SerializeToUtf8Bytes<ClusterWithoutMemberName>(new ClusterWithoutMemberName(this), new JsonSerializerOptions { WriteIndented = true });
         public byte[] SerializeId() => JsonSerializer.SerializeToUtf8Bytes<Id>(new Id(this.id), new JsonSerializerOptions { WriteIndented = true });
         public byte[] SerializeMembers() => JsonSerializer.SerializeToUtf8Bytes<Members>(new Members(this.members), new JsonSerializerOptions { WriteIndented = true });
+        public byte[] SerializeAdmins() => JsonSerializer.SerializeToUtf8Bytes<List<string>>(this.admins, new JsonSerializerOptions { WriteIndented = true });
     }
 }

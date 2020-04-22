@@ -133,7 +133,7 @@ namespace ORA.Tracker.Routes.Tests
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(unauthorizedAction))
-                .Where(e => e.ErrorCode.Equals(401));
+                .Where(e => e.ErrorCode.Equals(403));
         }
 
         [Fact]

@@ -33,7 +33,7 @@ namespace ORA.Tracker.Routes
             var c = ClusterDatabase.Get(urlParams["id"])
                 ?? throw new HttpListenerException(404, invalidClusterId);
             if (!c.members.ContainsKey(TokenManager.Instance.GetIdFromToken(token)))
-                throw new HttpListenerException(401, unauthorizedAction);
+                throw new HttpListenerException(403, unauthorizedAction);
 
             return c.SerializeMembers();
         }

@@ -30,28 +30,7 @@ namespace ORA.Tracker.Routes.Tests
         {
             string notFound = new Error("Not Found").ToString();
 
-            context = await listener.GenerateContext("/", HttpMethod.Get);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Equals(notFound))
-                .Where(e => e.ErrorCode.Equals(404));
-
-            context = await listener.GenerateContext("/", HttpMethod.Post);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Equals(notFound))
-                .Where(e => e.ErrorCode.Equals(404));
-
             context = await listener.GenerateContext("/", HttpMethod.Put);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Equals(notFound))
-                .Where(e => e.ErrorCode.Equals(404));
-
-            context = await listener.GenerateContext("/", HttpMethod.Delete);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
                 .Should()
                 .Throw<HttpListenerException>()
