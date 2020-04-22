@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 using FluentAssertions;
 
@@ -13,18 +14,18 @@ namespace ORA.Tracker.Tests.Models
     {
         [Theory]
         [ClassData(typeof(TestData))]
-        public void WhenSerializing_ShouldMatch(string name, List<string> members, List<string> admins, List<string> files)
+        public void WhenSerializing_ShouldMatch(string name, Dictionary<string, string> members, List<string> admins, List<string> files)
         {
             var id = Guid.NewGuid();
             var owner = Guid.NewGuid().ToString();
-            var testee = new Cluster(id, name, owner, members, admins, files);
+            var testee = new Cluster(id, name, owner, "ownername", members, admins, files);
 
             testee.Serialize().Should().Equals(Encoding.UTF8.GetBytes(
                 "{\n"
              + $"  \"id\": \"{id.ToString()}\",\n"
              + $"  \"name\": \"{name}\",\n"
              + $"  \"owner\": \"{owner}\",\n"
-             + $"  \"members\": {StringListToIndentedString(members)},\n"
+             + $"  \"members\": {StringListToIndentedString(members.Keys.ToList())},\n"
              + $"  \"admins\": {StringListToIndentedString(admins)},\n"
              + $"  \"files\": {StringListToIndentedString(files)}\n"
              +  "}"
@@ -35,7 +36,7 @@ namespace ORA.Tracker.Tests.Models
         public void WhenSerializingId_ShouldMatch()
         {
             var id = Guid.NewGuid();
-            var testee = new Cluster(id, "", Guid.NewGuid().ToString(), new List<string>(), new List<string>(), new List<string>());
+            var testee = new Cluster(id, "", "", Guid.NewGuid().ToString(), new Dictionary<string, string>(), new List<string>(), new List<string>());
 
             testee.SerializeId().Should().Equals(Encoding.UTF8.GetBytes(
                 "{\n"
@@ -56,7 +57,7 @@ namespace ORA.Tracker.Tests.Models
              + $"  \"id\": \"{id.ToString()}\",\n"
              + $"  \"name\": \"{name}\",\n"
              + $"  \"owner\": \"{owner}\",\n"
-             +  "  \"members\": [],\n"
+             +  "  \"members\": {},\n"
              +  "  \"admins\": [],\n"
              +  "  \"files\": []\n"
              +  "}"
@@ -95,10 +96,16 @@ namespace ORA.Tracker.Tests.Models
 
         public IEnumerator<object[]> GetEnumerator()
         {
-            yield return new object[] { "", emptyStringList, emptyStringList, emptyStringList };
+            yield return new object[] { "", new Dictionary<string, string>(), emptyStringList, emptyStringList };
             yield return new object[] {
                 "TestCluster",
-                new List<string>() { "TrAyZeN", "treefortwo", "Adamaq01", "Tats" },
+                new Dictionary<string, string>()
+                {
+                    { "1111", "TrAyZeN" },
+                    { "2222", "treefortwo"},
+                    { "3333", "Adamaq01"},
+                    { "4444", "Tats"}
+                },
                 new List<string>() { "Léo", "Raffaël", "Adam", "Pierre-Corentin" },
                 new List<string>() { "ORA.exe", "hello.c" }
             };
