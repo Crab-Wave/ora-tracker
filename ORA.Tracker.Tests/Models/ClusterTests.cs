@@ -16,14 +16,14 @@ namespace ORA.Tracker.Tests.Models
         public void WhenSerializing_ShouldMatch(string name, List<string> members, List<string> admins, List<string> files)
         {
             var id = Guid.NewGuid();
-            var owner = Guid.NewGuid();
+            var owner = Guid.NewGuid().ToString();
             var testee = new Cluster(id, name, owner, members, admins, files);
 
             testee.Serialize().Should().Equals(Encoding.UTF8.GetBytes(
                 "{\n"
              + $"  \"id\": \"{id.ToString()}\",\n"
              + $"  \"name\": \"{name}\",\n"
-             + $"  \"owner\": \"{owner.ToString()}\",\n"
+             + $"  \"owner\": \"{owner}\",\n"
              + $"  \"members\": {StringListToIndentedString(members)},\n"
              + $"  \"admins\": {StringListToIndentedString(admins)},\n"
              + $"  \"files\": {StringListToIndentedString(files)}\n"
@@ -35,7 +35,7 @@ namespace ORA.Tracker.Tests.Models
         public void WhenSerializingId_ShouldMatch()
         {
             var id = Guid.NewGuid();
-            var testee = new Cluster(id, "", Guid.NewGuid(), new List<string>(), new List<string>(), new List<string>());
+            var testee = new Cluster(id, "", Guid.NewGuid().ToString(), new List<string>(), new List<string>(), new List<string>());
 
             testee.SerializeId().Should().Equals(Encoding.UTF8.GetBytes(
                 "{\n"
@@ -49,13 +49,13 @@ namespace ORA.Tracker.Tests.Models
         {
             var id = Guid.NewGuid();
             string name = "test";
-            var owner = Guid.NewGuid();
+            var owner = Guid.NewGuid().ToString();
 
             byte[] jsonBytes = Encoding.UTF8.GetBytes(
                 "{\n"
              + $"  \"id\": \"{id.ToString()}\",\n"
              + $"  \"name\": \"{name}\",\n"
-             + $"  \"owner\": \"{owner.ToString()}\",\n"
+             + $"  \"owner\": \"{owner}\",\n"
              +  "  \"members\": [],\n"
              +  "  \"admins\": [],\n"
              +  "  \"files\": []\n"

@@ -6,7 +6,7 @@ using System.IO;
 
 using ORA.Tracker.Routes;
 using ORA.Tracker.Models;
-using ORA.Tracker.Logging;
+using ORA.Tracker.Services;
 
 namespace ORA.Tracker
 {
@@ -27,31 +27,40 @@ namespace ORA.Tracker
 
         public void HandleRequest(HttpListenerContext context)
         {
-            string path = "/" + (context.Request.RawUrl.Split("?")[0].Split("/")[1] ?? "");
-            byte[] body = new byte[0];
+            string path = context.Request.RawUrl.Split("?")[0];
+            Dictionary<string, string> urlParams;
+            var body = new byte[0];
+            bool routeHandled = false;
 
-            if (this.isRouteHandled(path))
+            try
             {
-                try
+                foreach (var route in this.routes.Keys)
                 {
-                    body = this.routes[path].HandleRequest(context.Request, context.Response);
+                    if (this.matchRoute(path, route, out urlParams))
+                    {
+                        routeHandled = true;
+                        body = this.routes[route].HandleRequest(context.Request, context.Response, urlParams);
+                        break;
+                    }
                 }
-                catch (HttpListenerException e)
-                {
-                    logger.Error(e);
 
-                    context.Response.StatusCode = e.ErrorCode;
-                    body = System.Text.Encoding.UTF8.GetBytes(e.Message);
-                }
-                catch (Exception e)
-                {
-                    logger.Error(e);
-
-                    context.Response.StatusCode = 520;
-                    body = unknownError;
-                }
             }
-            else
+            catch (HttpListenerException e)
+            {
+                logger.Error(e);
+
+                context.Response.StatusCode = e.ErrorCode;
+                body = System.Text.Encoding.UTF8.GetBytes(e.Message);
+            }
+            catch (Exception e)
+            {
+                logger.Error(e);
+
+                context.Response.StatusCode = 520;
+                body = unknownError;
+            }
+
+            if (!routeHandled)
             {
                 logger.Error("Unhandled route");
 
@@ -63,7 +72,56 @@ namespace ORA.Tracker
             this.sendResponse(body, context.Response);
         }
 
-        private bool isRouteHandled(string path) => this.routes.ContainsKey(path);
+        private bool matchRoute(string path, string route, out Dictionary<string, string> urlParams)
+        {
+            urlParams = new Dictionary<string, string>();
+            string name, param;
+            int i = 0, j = 0;
+
+            while (i < path.Length && j < route.Length)
+            {
+                if (route[j] == '{')
+                {
+                    // Reads the name of the param and advance to next /
+                    name = "";
+                    j += 1;
+                    while (j < route.Length && route[j] != '}')
+                        name += route[j++];
+                    j += 1;
+
+                    // Reads the value of the param
+                    param = "";
+                    while (i < path.Length && path[i] != '/')
+                        param += path[i++];
+
+                    urlParams.Add(name, param);
+                }
+
+                if (i < path.Length && j < route.Length && path[i] != route[j])
+                {
+                    urlParams = null;
+                    return false;
+                }
+
+                i += 1;
+                j += 1;
+            }
+
+            if (i >= path.Length && (j < route.Length && route[j] == '{' || j+1 < route.Length && route[j+1] == '{'))
+            {
+                name = "";
+                j += j == '{' ? 1 : 2;
+                while (j < route.Length && route[j] != '}')
+                    name += route[j++];
+                j += 1;
+
+                urlParams.Add(name, "");
+            }
+
+            if (!(i >= path.Length && j >= route.Length))
+                urlParams = null;
+            return i >= path.Length && j >= route.Length;
+        }
 
         private bool sendResponse(byte[] buffer, HttpListenerResponse response)
         {

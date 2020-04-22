@@ -1,6 +1,6 @@
 ﻿using System;
 
-using ORA.Tracker.Database;
+using ORA.Tracker.Services.Databases;
 
 namespace ORA.Tracker
 {
@@ -25,7 +25,7 @@ namespace ORA.Tracker
                 return;
             }
 
-            DatabaseManager.Init(arguments.DatabasePath);
+            ClusterDatabase.Init(arguments.ClusterDatabasePath);
 
             var tracker = new Tracker(arguments.Port);
             tracker.Start();

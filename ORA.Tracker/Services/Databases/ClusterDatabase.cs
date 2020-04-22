@@ -6,16 +6,16 @@ using LevelDB;
 
 using ORA.Tracker.Models;
 
-namespace ORA.Tracker.Database
+namespace ORA.Tracker.Services.Databases
 {
-    public class DatabaseManager
+    public class ClusterDatabase
     {
         private static DB database = null;
 
         public static void Init(string path)
         {
             if (database != null)
-                throw new Exception("DatabaseManager is already initialized");
+                throw new Exception("ClusterDatabase is already initialized");
 
             var options = new Options { CreateIfMissing = true };
             database = new DB(options, path);
@@ -25,7 +25,7 @@ namespace ORA.Tracker.Database
         public static void Close()
         {
             if (database == null)
-                throw new Exception("DatabaseManager is not initialized");
+                throw new Exception("ClusterDatabase is not initialized");
 
             database.Close();
         }
@@ -33,23 +33,33 @@ namespace ORA.Tracker.Database
         public static void Put(string key, Cluster cluster)
         {
             if (database == null)
-                throw new Exception("DatabaseManager is not initialized");
+                throw new Exception("ClusterDatabase is not initialized");
 
-            database.Put(key, Encoding.UTF8.GetString(cluster.Serialize()));
+            database.Put(Encoding.UTF8.GetBytes(key), cluster.Serialize());
         }
 
-        public static byte[] Get(string key)
+        public static byte[] GetBytes(string key)
         {
             if (database == null)
-                throw new Exception("DatabaseManager is not initialized");
+                throw new Exception("ClusterDatabase is not initialized");
 
-            return Encoding.UTF8.GetBytes(database.Get(key));
+            return database.Get(Encoding.UTF8.GetBytes(key));
+        }
+
+        public static Cluster Get(string key)
+        {
+            if (database == null)
+                throw new Exception("ClusterDatabase is not initialized");
+
+            byte[] jsonBytes = GetBytes(key);
+
+            return jsonBytes != null ? Cluster.Deserialize(jsonBytes) : null;
         }
 
         public static byte[] GetAll()
         {
             if (database == null)
-                throw new Exception("DatabaseManager is not initialized");
+                throw new Exception("ClusterDatabase is not initialized");
 
             var stream = new MemoryStream();
             var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
@@ -59,7 +69,7 @@ namespace ORA.Tracker.Database
             writer.WriteStartArray();
             for (iterator.SeekToFirst(); iterator.IsValid(); iterator.Next())
             {
-                cluster = JsonSerializer.Deserialize<Cluster>(database.Get(iterator.KeyAsString()));
+                cluster = Get(iterator.KeyAsString());
                 writer.WriteStartObject();
 
                 writer.WriteString("id", cluster.id.ToString());
@@ -92,7 +102,7 @@ namespace ORA.Tracker.Database
         public static void Delete(string key)
         {
             if (database == null)
-                throw new Exception("DatabaseManager is not initialized");
+                throw new Exception("ClusterDatabase is not initialized");
 
             database.Delete(key);
         }
@@ -100,7 +110,7 @@ namespace ORA.Tracker.Database
         public static void Info()
         {
             if (database == null)
-                throw new Exception("DatabaseManager is not initialized");
+                throw new Exception("ClusterDatabase is not initialized");
 
             var iterator = database.CreateIterator();
 

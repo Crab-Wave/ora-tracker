@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Text.Json;
 using System.Collections.Generic;
 
@@ -19,17 +18,17 @@ namespace ORA.Tracker.Models
 
         public Guid id { get; set; }
         public string name { get; set; }
-        public Guid owner { get; set; }
+        public string owner { get; set; }
         public List<string> members { get; set; }
         public List<string> admins { get; set; }
         public List<string> files { get; set; }
 
         public Cluster() { }
 
-        public Cluster(string name, Guid owner)
+        public Cluster(string name, string owner)
             : this(Guid.NewGuid(), name, owner, new List<string>(), new List<string>(), new List<string>()) { }
 
-        public Cluster(Guid id, string name, Guid owner, List<string> members, List<string> admins, List<string> files)
+        public Cluster(Guid id, string name, string owner, List<string> members, List<string> admins, List<string> files)
         {
             this.id = id;
             this.name = name;

@@ -1,4 +1,3 @@
-using System;
 using System.Net;
 using System.Net.Http;
 using Xunit;
@@ -10,11 +9,11 @@ using ORA.Tracker.Tests.Utils;
 
 namespace ORA.Tracker.Routes.Tests
 {
-    public class RouteTests
+    public class AdminsTests
     {
-        private static readonly MockupListener listener = new MockupListener(15300);
+        private static readonly MockupListener listener = new MockupListener(15304);
 
-        private MockRoute testee = new MockRoute();
+        private Admins testee = new Admins();
         private HttpListenerContext context;
 
         [Fact]
@@ -66,37 +65,5 @@ namespace ORA.Tracker.Routes.Tests
                 .Where(e => e.Message.Equals(notFound))
                 .Where(e => e.ErrorCode.Equals(404));
         }
-
-        [Fact]
-        public async void WhenGettingUrlParams_ShouldMatch()
-        {
-            var urlParams = new string[] { "it", "is", "a", "test" };
-            string path = "/" + String.Join("/", urlParams);
-
-            context = await listener.GenerateContext(path, HttpMethod.Get);
-            testee.GetUrlParams(context.Request)
-                .Should()
-                .Equals(urlParams);
-        }
-
-        [Fact]
-        public async void WhenGetBody_ShouldMatch()
-        {
-            byte[] content = Encoding.UTF8.GetBytes("It is a test content");
-
-            context = await listener.GenerateContext("/", HttpMethod.Post, content);
-            System.Text.Encoding.UTF8.GetString(testee.GetBody(context.Request))
-                .Should()
-                .Equals(content);
-        }
-    }
-
-    internal class MockRoute : Route
-    {
-        public MockRoute()
-            : base() { }
-
-        public string[] GetUrlParams(HttpListenerRequest request) => this.getUrlParams(request);
-        public byte[] GetBody(HttpListenerRequest request) => this.getBody(request);
     }
 }
