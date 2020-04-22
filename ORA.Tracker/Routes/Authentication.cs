@@ -27,9 +27,13 @@ namespace ORA.Tracker.Routes
                 throw new HttpListenerException(400, invalidKeyStructure);
 
             string id = new Guid(publicKey.Take(16).ToArray()).ToString();
-
-            string token = TokenManager.Instance.NewToken();
+            string token;
             byte[] encryptedToken;
+
+            if (TokenManager.Instance.IsRegistered(id))
+                token = TokenManager.Instance.GetTokenFromId(id);
+            else
+                token = TokenManager.Instance.NewToken();
 
             try
             {
@@ -42,7 +46,8 @@ namespace ORA.Tracker.Routes
                 throw new HttpListenerException(400, invalidKeyStructure);
             }
 
-            TokenManager.Instance.RegisterToken(id, token);
+            if (!TokenManager.Instance.IsRegistered(id))
+                TokenManager.Instance.RegisterToken(id, token);
 
             return encryptedToken;
         }

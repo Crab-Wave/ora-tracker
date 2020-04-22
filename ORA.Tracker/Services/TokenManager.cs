@@ -41,6 +41,8 @@ namespace ORA.Tracker.Services
         public string GetTokenFromId(string id) => this.tokens[id];
         public string GetIdFromToken(string token) => this.ids[token];
 
+        public bool IsRegistered(string id) => this.tokens.ContainsKey(id);
+
         public bool IsValidToken(string token) => this.IsTokenRegistered(token) && !this.IsTokenExpired(token);
         public bool IsTokenRegistered(string token) => this.ids.ContainsKey(token);
         public bool IsTokenExpired(string token) => DateTime.UtcNow.Ticks > this.tokenExpirations[token];
