@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Collections.Generic;
 using LevelDB;
 
 using ORA.Tracker.Models;
@@ -61,42 +62,15 @@ namespace ORA.Tracker.Services.Databases
             if (database == null)
                 throw new Exception("ClusterDatabase is not initialized");
 
-            var stream = new MemoryStream();
-            var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
             var iterator = database.CreateIterator();
-            Cluster cluster;
+            var allClusters = new List<Cluster.ClusterWithoutMemberName>();
 
-            writer.WriteStartArray();
             for (iterator.SeekToFirst(); iterator.IsValid(); iterator.Next())
             {
-                cluster = Get(iterator.KeyAsString());
-                writer.WriteStartObject();
-
-                writer.WriteString("id", cluster.id.ToString());
-                writer.WriteString("name", cluster.name);
-                writer.WriteString("owner", cluster.owner.ToString());
-
-                writer.WriteStartArray("members");
-                foreach (string member in cluster.members)
-                    writer.WriteStringValue(member);
-                writer.WriteEndArray();
-
-                writer.WriteStartArray("admins");
-                foreach (string admin in cluster.admins)
-                    writer.WriteStringValue(admin);
-                writer.WriteEndArray();
-
-                writer.WriteStartArray("files");
-                foreach (string file in cluster.files)
-                    writer.WriteStringValue(file);
-                writer.WriteEndArray();
-
-                writer.WriteEndObject();
+                allClusters.Add(new Cluster.ClusterWithoutMemberName(Get(iterator.KeyAsString())));
             }
-            writer.WriteEndArray();
-            writer.Flush();
 
-            return stream.ToArray();
+            return JsonSerializer.SerializeToUtf8Bytes<List<Cluster.ClusterWithoutMemberName>>(allClusters, new JsonSerializerOptions { WriteIndented = true });
         }
 
         public static void Delete(string key)

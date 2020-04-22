@@ -33,7 +33,7 @@ namespace ORA.Tracker.Routes.Tests
         [Fact]
         public async void WhenGetExistingCluster_ShouldMatch()
         {
-            var c = new Cluster("test", Guid.NewGuid().ToString());
+            var c = new Cluster("test", Guid.NewGuid().ToString(), "ownerName");
             ClusterDatabase.Put(c.id.ToString(), c);
 
             context = await listener.GenerateContext("/" + c.id.ToString(), HttpMethod.Get);
@@ -83,7 +83,7 @@ namespace ORA.Tracker.Routes.Tests
         public async void WhenPost_ShouldCreateCluster()
         {
             string clusterName = "test";
-            context = await listener.GenerateContext($"?name={clusterName}", HttpMethod.Post, token);
+            context = await listener.GenerateContext($"?name={clusterName}&username=ownerName", HttpMethod.Post, token);
 
             string clusterId = Encoding.UTF8.GetString(testee.HandleRequest(context.Request, context.Response))
                 .Split(":")[1].Split("\"")[1].Split("\"")[0];   // TODO: Do this more cleanly
@@ -124,7 +124,7 @@ namespace ORA.Tracker.Routes.Tests
         {
             string unauthorizedAction = new Error("Unauthorized action").ToString();
 
-            Cluster c = new Cluster("test", "notsameid");
+            Cluster c = new Cluster("test", "notsameid", "ownerName");
             ClusterDatabase.Put(c.id.ToString(), c);
 
             context = await listener.GenerateContext("/", HttpMethod.Delete, token);
@@ -139,7 +139,7 @@ namespace ORA.Tracker.Routes.Tests
         [Fact]
         public async void WhenDeleteExistingClusterAndAuthorized_ShouldReturn_EmptyBody()
         {
-            Cluster c = new Cluster("test", TokenManager.Instance.GetIdFromToken(token));
+            Cluster c = new Cluster("test", TokenManager.Instance.GetIdFromToken(token), "ownerName");
             ClusterDatabase.Put(c.id.ToString(), c);
 
             context = await listener.GenerateContext("/", HttpMethod.Delete, token);
