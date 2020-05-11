@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\ORA.Tracker\ORA.Tracker.csproj" />
+    <ProjectReference Include="..\..\ORA.Tracker\ORA.Tracker.csproj" />
   </ItemGroup>
 
 </Project>
