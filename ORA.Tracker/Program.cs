@@ -33,14 +33,14 @@ namespace ORA.Tracker
 
         public static void PrintProgramHelp()
         {
-            Console.WriteLine(@"Usage: ora-tracker [ARGUMENTS]
+            Console.WriteLine($@"Usage: ora-tracker [OPTIONS]
 Run the Tracker program for project ORA.
-By default the tracker is ran on port 3000 and the database directory is './Database'.
+By default the tracker is ran on port {Arguments.DefaultPort} and the database directory is '{Arguments.DefaultClusterDatabasePath}'.
 
-Arguments:
-  -p, --port      Specify the port that the tracker will listen to
-  -d, --database  Specify the tracker database directory path
-  -h, --help      Print this help message");
+Options:
+  -p, --port        Specify the port that the tracker will listen to
+  -d, --database    Specify the tracker database directory path
+  -h, --help        Print this help message");
         }
     }
 }
