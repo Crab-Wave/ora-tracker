@@ -12,7 +12,6 @@ namespace ORA.Tracker.Tests.Models
         [Theory]
         [InlineData("")]
         [InlineData("127.0.0.1")]
-        [InlineData("8.8.8.8")]
         public void WhenConvertingToString_ShouldMatch(string current_ip)
         {
             var testee = new Node(current_ip);
@@ -28,7 +27,6 @@ namespace ORA.Tracker.Tests.Models
         [Theory]
         [InlineData("")]
         [InlineData("127.0.0.1")]
-        [InlineData("8.8.8.8")]
         public void WhenConvertingToBytes_ShouldMatch(string current_ip)
         {
             var testee = new Node(current_ip);

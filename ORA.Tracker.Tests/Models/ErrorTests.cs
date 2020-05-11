@@ -11,8 +11,6 @@ namespace ORA.Tracker.Tests.Models
         [Theory]
         [InlineData("")]
         [InlineData("Not Found")]
-        [InlineData("Method Not Allowed")]
-        [InlineData("Unknown Error")]
         public void WhenConvertingToString_ShouldMatchMessage(string message)
         {
             var testee = new Error(message);
@@ -28,8 +26,6 @@ namespace ORA.Tracker.Tests.Models
         [Theory]
         [InlineData("")]
         [InlineData("Not Found")]
-        [InlineData("Method Not Allowed")]
-        [InlineData("Unknown Error")]
         public void WhenConvertingToBytes_ShouldMatchMessage(string message)
         {
             var testee = new Error(message);

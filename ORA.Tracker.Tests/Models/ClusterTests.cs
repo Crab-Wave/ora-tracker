@@ -26,6 +26,7 @@ namespace ORA.Tracker.Tests.Models
             };
             var admins = new List<string>() { "Leo", "Raffael", "Adam", "Pierre-Corentin" };
             var files = new List<string>() { "ORA.exe", "hello.c" };
+
             var testee = new Cluster(id, "clustername", owner, "ownername", members, admins, files);
 
             Encoding.UTF8.GetString(testee.Serialize()).Replace("\r", "").Should().Be(
