@@ -24,21 +24,21 @@ namespace ORA.Tracker
                 else if (args[i] == "-p" || args[i] == "--port")
                 {
                     if (++i >= args.Length)
-                        throw new Exception($"Missing argument for '{args[i-1]}' option.");
+                        throw new ArgumentException($"Missing argument for '{args[i-1]}' option.");
 
                     if (!Int32.TryParse(args[i], out port))
-                        throw new Exception($"Invalid argument for '{args[i-1]}' option.");
+                        throw new ArgumentException($"Invalid argument for '{args[i-1]}' option.");
                 }
                 else if (args[i] == "-d" || args[i] == "--database")
                 {
                     if (++i >= args.Length)
-                        throw new Exception($"Missing argument for '{args[i-1]}' option.");
+                        throw new ArgumentException($"Missing argument for '{args[i-1]}' option.");
 
                     clusterDatabasePath = args[i];
                 }
                 else
                 {
-                    throw new Exception($"Unknown option '{args[i]}'");
+                    throw new ArgumentException($"Unknown option '{args[i]}'");
                 }
             }
 
