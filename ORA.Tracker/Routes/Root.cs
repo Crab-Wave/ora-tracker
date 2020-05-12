@@ -1,6 +1,8 @@
 using System.Net;
 using System.Text;
-using System.Collections.Generic;
+
+using ORA.Tracker.Http;
+using ORA.Tracker.Services;
 
 namespace ORA.Tracker.Routes
 {
@@ -8,10 +10,10 @@ namespace ORA.Tracker.Routes
     {
         private static readonly byte[] welcomeMessage = Encoding.UTF8.GetBytes("Hey welcome to '/'");
 
-        public Root()
-            : base() { }
+        public Root(ServiceConfiguration serviceConfiguration)
+            : base(serviceConfiguration) { }
 
-        protected override byte[] get(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams = null)
+        protected override byte[] get(HttpRequest request, HttpListenerResponse response)
             => welcomeMessage;
     }
 }

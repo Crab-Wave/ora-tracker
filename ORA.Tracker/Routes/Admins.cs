@@ -1,8 +1,9 @@
 using System.Net;
-using System.Collections.Generic;
 
-using ORA.Tracker.Models;
+using ORA.Tracker.Http;
 using ORA.Tracker.Services;
+using ORA.Tracker.Models;
+
 namespace ORA.Tracker.Routes
 {
     public class Admins : Route
@@ -16,78 +17,78 @@ namespace ORA.Tracker.Routes
 
         private static readonly string notClusterAdmin = new Error("id does not correspond to a cluster admin").ToString();
 
-        public Admins()
-            : base() { }
+        public Admins(ServiceConfiguration serviceConfiguration)
+            : base(serviceConfiguration) { }
 
-        protected override byte[] get(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams = null)
+        protected override byte[] get(HttpRequest request, HttpListenerResponse response)
         {
             string token = Services.Authorization.GetToken(request.Headers);
 
-            if (urlParams == null || !urlParams.ContainsKey("id") || urlParams["id"] == "")
+            if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
                 throw new HttpListenerException(400, missingClusterId);
 
-            if (!TokenManager.Instance.IsValidToken(token))
+            if (!this.services.TokenManager.IsValidToken(token))
                 throw new HttpListenerException(400, invalidToken);
 
-            var c = ClusterManager.Instance.Get(urlParams["id"])
+            var c = this.services.ClusterManager.Get(request.UrlParameters["id"])
                 ?? throw new HttpListenerException(404, invalidClusterId);
-            if (!c.members.ContainsKey(TokenManager.Instance.GetIdFromToken(token)))
+            if (!c.members.ContainsKey(this.services.TokenManager.GetIdFromToken(token)))
                 throw new HttpListenerException(403, unauthorizedAction);
 
             return c.SerializeAdmins();
         }
 
-        protected override byte[] post(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams)
+        protected override byte[] post(HttpRequest request, HttpListenerResponse response)
         {
             string token = Services.Authorization.GetToken(request.Headers);
 
             string id = request.QueryString.GetValues("id")?[0]
                 ?? throw new HttpListenerException(400, missingMemberId);
 
-            if (urlParams == null || !urlParams.ContainsKey("id") || urlParams["id"] == "")
+            if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
                 throw new HttpListenerException(400, missingClusterId);
 
-            if (!TokenManager.Instance.IsValidToken(token))
+            if (!this.services.TokenManager.IsValidToken(token))
                 throw new HttpListenerException(400, invalidToken);
 
-            TokenManager.Instance.RefreshToken(token);
+            this.services.TokenManager.RefreshToken(token);
 
-            var c = ClusterManager.Instance.Get(urlParams["id"])
+            var c = this.services.ClusterManager.Get(request.UrlParameters["id"])
                 ?? throw new HttpListenerException(404, invalidClusterId);
-            if (TokenManager.Instance.GetIdFromToken(token) != c.owner)
+            if (this.services.TokenManager.GetIdFromToken(token) != c.owner)
                 throw new HttpListenerException(403, unauthorizedAction);
 
             if (!c.members.ContainsKey(id))     // return error if is not member ?
                 throw new HttpListenerException(400, notClusterMember);
 
             c.admins.Add(id);
-            ClusterManager.Instance.Put(urlParams["id"], c);
+            this.services.ClusterManager.Put(request.UrlParameters["id"], c);
 
             return new byte[] { };
         }
 
-        protected override byte[] delete(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams)
+        protected override byte[] delete(HttpRequest request, HttpListenerResponse response)
         {
             string token = Services.Authorization.GetToken(request.Headers);
 
             string adminId = request.QueryString.GetValues("id")?[0]
                 ?? throw new HttpListenerException(400, missingMemberId);
 
-            if (!TokenManager.Instance.IsValidToken(token))
+            if (!this.services.TokenManager.IsValidToken(token))
                 throw new HttpListenerException(400, invalidToken);
 
-            TokenManager.Instance.RefreshToken(token);
+            this.services.TokenManager.RefreshToken(token);
 
-            var c = ClusterManager.Instance.Get(urlParams["id"])
+            var c = this.services.ClusterManager.Get(request.UrlParameters["id"])
                 ?? throw new HttpListenerException(404, invalidClusterId);
-            if (TokenManager.Instance.GetIdFromToken(token) != c.owner)
+            if (this.services.TokenManager.GetIdFromToken(token) != c.owner)
                 throw new HttpListenerException(403, unauthorizedAction);
 
             if (!c.admins.Contains(adminId))
                 throw new HttpListenerException(400, notClusterAdmin);
 
             c.admins.Remove(adminId);
-            ClusterManager.Instance.Put(urlParams["id"], c);
+            this.services.ClusterManager.Put(request.UrlParameters["id"], c);
 
             return new byte[] { };
         }

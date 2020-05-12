@@ -2,10 +2,11 @@ using System;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using System.Collections.Generic;
 using System.Linq;
-using ORA.Tracker.Models;
+
+using ORA.Tracker.Http;
 using ORA.Tracker.Services;
+using ORA.Tracker.Models;
 
 namespace ORA.Tracker.Routes
 {
@@ -14,16 +15,15 @@ namespace ORA.Tracker.Routes
         private static readonly string missingKey = new Error("Missing key").ToString();
         private static readonly string invalidKeyStructure = new Error("Invalid key structure").ToString();
 
-        public Authentication()
-            : base() { }
+        public Authentication(ServiceConfiguration serviceConfiguration)
+            : base(serviceConfiguration) { }
 
-        protected override byte[] post(HttpListenerRequest request, HttpListenerResponse response,
-            Dictionary<string, string> urlParams = null)
+        protected override byte[] post(HttpRequest request, HttpListenerResponse response)
         {
             if (!request.HasEntityBody)
                 throw new HttpListenerException(400, missingKey);
 
-            byte[] publicKey = Convert.FromBase64String(Encoding.Default.GetString(this.getBody(request)));
+            byte[] publicKey = Convert.FromBase64String(Encoding.Default.GetString(request.Body));
 
             if (publicKey.Length < 16)
                 throw new HttpListenerException(400, invalidKeyStructure);
@@ -32,10 +32,10 @@ namespace ORA.Tracker.Routes
             string token;
             byte[] encryptedToken;
 
-            if (TokenManager.Instance.IsValidToken(id))
-                token = TokenManager.Instance.GetTokenFromId(id);
+            if (this.services.TokenManager.IsValidToken(id))
+                token = this.services.TokenManager.GetTokenFromId(id);
             else
-                token = TokenManager.Instance.NewToken();
+                token = this.services.TokenManager.NewToken();
 
             try
             {
@@ -48,8 +48,8 @@ namespace ORA.Tracker.Routes
                 throw new HttpListenerException(400, invalidKeyStructure);
             }
 
-            if (!TokenManager.Instance.IsRegistered(id))
-                TokenManager.Instance.RegisterToken(id, token);
+            if (!this.services.TokenManager.IsRegistered(id))
+                this.services.TokenManager.RegisterToken(id, token);
             // Refresh token if id is registered ?
 
             return Encoding.UTF8.GetBytes(Convert.ToBase64String(encryptedToken));
