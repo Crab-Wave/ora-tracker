@@ -7,8 +7,8 @@ using FluentAssertions;
 using System.Text;
 
 using ORA.Tracker.Models;
-using ORA.Tracker.Services.Databases;
 using ORA.Tracker.Services;
+using ORA.Tracker.Services.Databases;
 using ORA.Tracker.Tests.Integration.Utils;
 
 namespace ORA.Tracker.Routes.Tests.Integration
@@ -21,10 +21,13 @@ namespace ORA.Tracker.Routes.Tests.Integration
         private HttpListenerContext context;
         private string token;
 
+        static ClustersTests()
+        {
+            ClusterManager.Instance.SetDatabase(new ClusterDatabase("../ClustersTests"));
+        }
+
         public ClustersTests()
         {
-            ignoreErrors(() => ClusterDatabase.Init("../DatabaseTest"));
-
             token = TokenManager.Instance.NewToken();
             if (!TokenManager.Instance.IsTokenRegistered(token))
                 TokenManager.Instance.RegisterToken(Guid.NewGuid().ToString(), token);
@@ -34,7 +37,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         public async void WhenGetExistingCluster_ShouldMatch()
         {
             var c = new Cluster("test", Guid.NewGuid().ToString(), "ownerName");
-            ClusterDatabase.Put(c.id.ToString(), c);
+            ClusterManager.Instance.Put(c.id.ToString(), c);
 
             context = await listener.GenerateContext("/" + c.id.ToString(), HttpMethod.Get);
             testee.HandleRequest(context.Request, context.Response)
@@ -87,7 +90,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
 
             string clusterId = Encoding.UTF8.GetString(testee.HandleRequest(context.Request, context.Response))
                 .Split(":")[1].Split("\"")[1].Split("\"")[0];   // TODO: Do this more cleanly
-            var c = ClusterDatabase.Get(clusterId);
+            var c = ClusterManager.Instance.Get(clusterId);
 
             c.Should().BeOfType<Cluster>().Which.name.Should().Be(clusterName);
         }
@@ -125,7 +128,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string unauthorizedAction = new Error("Unauthorized action").ToString();
 
             Cluster c = new Cluster("test", "notsameid", "ownerName");
-            ClusterDatabase.Put(c.id.ToString(), c);
+            ClusterManager.Instance.Put(c.id.ToString(), c);
 
             context = await listener.GenerateContext("/", HttpMethod.Delete, token);
             testee.Invoking(t => t.HandleRequest(context.Request, context.Response,
@@ -140,7 +143,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         public async void WhenDeleteExistingClusterAndAuthorized_ShouldReturn_EmptyBody()
         {
             Cluster c = new Cluster("test", TokenManager.Instance.GetIdFromToken(token), "ownerName");
-            ClusterDatabase.Put(c.id.ToString(), c);
+            ClusterManager.Instance.Put(c.id.ToString(), c);
 
             context = await listener.GenerateContext("/", HttpMethod.Delete, token);
             testee.HandleRequest(context.Request, context.Response,

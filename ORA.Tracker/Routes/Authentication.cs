@@ -50,6 +50,7 @@ namespace ORA.Tracker.Routes
 
             if (!TokenManager.Instance.IsRegistered(id))
                 TokenManager.Instance.RegisterToken(id, token);
+            // Refresh token if id is registered ?
 
             return Encoding.UTF8.GetBytes(Convert.ToBase64String(encryptedToken));
         }

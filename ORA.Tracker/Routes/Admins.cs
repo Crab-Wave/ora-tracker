@@ -3,8 +3,6 @@ using System.Collections.Generic;
 
 using ORA.Tracker.Models;
 using ORA.Tracker.Services;
-using ORA.Tracker.Services.Databases;
-
 namespace ORA.Tracker.Routes
 {
     public class Admins : Route
@@ -31,7 +29,7 @@ namespace ORA.Tracker.Routes
             if (!TokenManager.Instance.IsValidToken(token))
                 throw new HttpListenerException(400, invalidToken);
 
-            var c = ClusterDatabase.Get(urlParams["id"])
+            var c = ClusterManager.Instance.Get(urlParams["id"])
                 ?? throw new HttpListenerException(404, invalidClusterId);
             if (!c.members.ContainsKey(TokenManager.Instance.GetIdFromToken(token)))
                 throw new HttpListenerException(403, unauthorizedAction);
@@ -54,7 +52,7 @@ namespace ORA.Tracker.Routes
 
             TokenManager.Instance.RefreshToken(token);
 
-            var c = ClusterDatabase.Get(urlParams["id"])
+            var c = ClusterManager.Instance.Get(urlParams["id"])
                 ?? throw new HttpListenerException(404, invalidClusterId);
             if (TokenManager.Instance.GetIdFromToken(token) != c.owner)
                 throw new HttpListenerException(403, unauthorizedAction);
@@ -63,7 +61,7 @@ namespace ORA.Tracker.Routes
                 throw new HttpListenerException(400, notClusterMember);
 
             c.admins.Add(id);
-            ClusterDatabase.Put(urlParams["id"], c);
+            ClusterManager.Instance.Put(urlParams["id"], c);
 
             return new byte[] { };
         }
@@ -80,7 +78,7 @@ namespace ORA.Tracker.Routes
 
             TokenManager.Instance.RefreshToken(token);
 
-            var c = ClusterDatabase.Get(urlParams["id"])
+            var c = ClusterManager.Instance.Get(urlParams["id"])
                 ?? throw new HttpListenerException(404, invalidClusterId);
             if (TokenManager.Instance.GetIdFromToken(token) != c.owner)
                 throw new HttpListenerException(403, unauthorizedAction);
@@ -89,7 +87,7 @@ namespace ORA.Tracker.Routes
                 throw new HttpListenerException(400, notClusterAdmin);
 
             c.admins.Remove(adminId);
-            ClusterDatabase.Put(urlParams["id"], c);
+            ClusterManager.Instance.Put(urlParams["id"], c);
 
             return new byte[] { };
         }

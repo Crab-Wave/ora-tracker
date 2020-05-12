@@ -3,7 +3,6 @@ using System.Net;
 using System.Collections.Generic;
 
 using ORA.Tracker.Models;
-using ORA.Tracker.Services.Databases;
 using ORA.Tracker.Services;
 
 namespace ORA.Tracker.Routes
@@ -23,9 +22,9 @@ namespace ORA.Tracker.Routes
         protected override byte[] get(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams)
         {
             if (urlParams == null || !urlParams.ContainsKey("id") || urlParams["id"] == "")
-                return ClusterDatabase.GetAll();
+                return ClusterManager.Instance.GetAll();
 
-            var cluster = ClusterDatabase.Get(urlParams["id"])
+            var cluster = ClusterManager.Instance.Get(urlParams["id"])
                 ?? throw new HttpListenerException(404, invalidClusterId);
 
             return cluster.SerializeWithoutMemberName();
@@ -47,7 +46,7 @@ namespace ORA.Tracker.Routes
             TokenManager.Instance.RefreshToken(token);
 
             Cluster cluster = new Cluster(name, TokenManager.Instance.GetIdFromToken(token), username);
-            ClusterDatabase.Put(cluster.id.ToString(), cluster);
+            ClusterManager.Instance.Put(cluster.id.ToString(), cluster);
 
             return cluster.SerializeId();
         }
@@ -64,12 +63,12 @@ namespace ORA.Tracker.Routes
 
             TokenManager.Instance.RefreshToken(token);
 
-            var c = ClusterDatabase.Get(urlParams["id"])
+            var c = ClusterManager.Instance.Get(urlParams["id"])
                 ?? throw new HttpListenerException(404, invalidClusterId);
             if (TokenManager.Instance.GetIdFromToken(token) != c.owner)
                 throw new HttpListenerException(403, unauthorizedAction);
 
-            ClusterDatabase.Delete(urlParams["id"]);
+            ClusterManager.Instance.Delete(urlParams["id"]);
             return new byte[0];
         }
     }
