@@ -19,9 +19,8 @@ install:
   - dotnet restore
 
 script:
-  - dotnet build
-  - dotnet test
   - dotnet format --check --dry-run --verbosity normal
+  - dotnet cake build.cake
 
 after_success:
   - bash send.sh success $WEBHOOK_URL
