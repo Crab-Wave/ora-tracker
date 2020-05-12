@@ -2,10 +2,9 @@ using System.Collections.Specialized;
 using Xunit;
 using FluentAssertions;
 
-using ORA.Tracker.Services;
 using ORA.Tracker.Models;
 
-namespace ORA.Tracker.Tests.Unit.Services
+namespace ORA.Tracker.Services.Tests.Unit
 {
     public class AuthorizationTests
     {

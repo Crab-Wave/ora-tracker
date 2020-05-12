@@ -2,9 +2,7 @@ using System;
 using Xunit;
 using FluentAssertions;
 
-using ORA.Tracker.Services;
-
-namespace ORA.Tracker.Tests.Unit.Services
+namespace ORA.Tracker.Services.Tests.Unit
 {
     public class TokenManagerTests
     {

@@ -7,7 +7,7 @@ using System.Text;
 using ORA.Tracker.Models;
 using ORA.Tracker.Tests.Integration.Utils;
 
-namespace ORA.Tracker.Tests.Integration.Routes
+namespace ORA.Tracker.Routes.Tests.Integration
 {
     public class AdminsTests
     {

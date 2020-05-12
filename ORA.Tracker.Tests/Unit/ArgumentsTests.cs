@@ -1,7 +1,6 @@
 using System;
 using Xunit;
 using FluentAssertions;
-using ORA.Tracker;
 
 namespace ORA.Tracker.Tests.Unit
 {

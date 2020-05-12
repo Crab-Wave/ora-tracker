@@ -11,7 +11,7 @@ using ORA.Tracker.Services.Databases;
 using ORA.Tracker.Services;
 using ORA.Tracker.Tests.Integration.Utils;
 
-namespace ORA.Tracker.Tests.Integration.Routes
+namespace ORA.Tracker.Routes.Tests.Integration
 {
     public class ClustersTests
     {

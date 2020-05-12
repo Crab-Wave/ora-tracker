@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using Xunit;
 using FluentAssertions;
 
-using ORA.Tracker.Models;
-
-namespace ORA.Tracker.Tests.Unit.Models
+namespace ORA.Tracker.Models.Tests.Unit
 {
     public class ClusterTests
     {
