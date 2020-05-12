@@ -3,23 +3,13 @@ using System.Text;
 using ORA.Tracker.Models;
 using ORA.Tracker.Services.Databases;
 
-namespace ORA.Tracker.Services
+namespace ORA.Tracker.Services.Managers
 {
     public class ClusterManager
     {
-        private static ClusterManager instance = new ClusterManager();
-        public static ClusterManager Instance { get => instance; }
-
         private IClusterDatabase database;
 
-        static ClusterManager() { }
-
-        public ClusterManager()
-        {
-            this.database = null;
-        }
-
-        public void SetDatabase(IClusterDatabase database)
+        public ClusterManager(IClusterDatabase database)
         {
             this.database = database;
         }
@@ -49,7 +39,7 @@ namespace ORA.Tracker.Services
         public void Put(string key, Cluster cluster)
         {
             if (cluster == null)
-                throw new ArgumentNullException("cluster", "Unable to put null cluster");
+                throw new ArgumentNullException("cluster", "Unable to put null cluster.");
 
             this.database.Put(Encoding.UTF8.GetBytes(key), cluster.Serialize());
         }
