@@ -7,6 +7,7 @@ using System.IO;
 using ORA.Tracker.Routes;
 using ORA.Tracker.Models;
 using ORA.Tracker.Services;
+using ORA.Tracker.Http;
 
 namespace ORA.Tracker
 {
@@ -18,49 +19,17 @@ namespace ORA.Tracker
 
         private Dictionary<string, Route> routes;
 
-        public Router()
-        {
-            this.routes = new Dictionary<string, Route>();
-        }
+        public Router() => this.routes = new Dictionary<string, Route>();
 
         public void RegisterRoute(string path, Route route) => this.routes.Add(path, route);
 
         public void HandleRequest(HttpListenerContext context)
         {
-            string path = context.Request.RawUrl.Split("?")[0];
-            Dictionary<string, string> urlParams;
             var body = new byte[0];
-            bool routeHandled = false;
 
-            try
-            {
-                foreach (var route in this.routes.Keys)
-                {
-                    if (this.matchRoute(path, route, out urlParams))
-                    {
-                        routeHandled = true;
-                        body = this.routes[route].HandleRequest(context.Request, context.Response, urlParams);
-                        break;
-                    }
-                }
+            var (route, request) = this.getHandlingContext(context.Request);
 
-            }
-            catch (HttpListenerException e)
-            {
-                logger.Error(e);
-
-                context.Response.StatusCode = e.ErrorCode;
-                body = System.Text.Encoding.UTF8.GetBytes(e.Message);
-            }
-            catch (Exception e)
-            {
-                logger.Error(e);
-
-                context.Response.StatusCode = 520;
-                body = unknownError;
-            }
-
-            if (!routeHandled)
+            if (route == null)
             {
                 logger.Error("Unhandled route");
 
@@ -68,8 +37,43 @@ namespace ORA.Tracker
                 if (context.Request.HttpMethod != HttpMethod.Head.ToString())
                     body = notFound;
             }
+            else
+            {
+                try
+                {
+                    body = route.HandleRequest(request, context.Response);
+                }
+                catch (HttpListenerException e)
+                {
+                    logger.Error(e);
+
+                    context.Response.StatusCode = e.ErrorCode;
+                    body = System.Text.Encoding.UTF8.GetBytes(e.Message);
+                }
+                catch (Exception e)
+                {
+                    logger.Error(e);
+
+                    context.Response.StatusCode = 520;
+                    body = unknownError;
+                }
+            }
 
             this.sendResponse(body, context.Response);
+        }
+
+        private (Route, HttpRequest) getHandlingContext(HttpListenerRequest request)
+        {
+            string path = request.RawUrl.Split("?")[0];
+            var urlParameters = new Dictionary<string, string>();
+
+            foreach (var route in this.routes.Keys)
+            {
+                if (this.matchRoute(path, route, out urlParameters))
+                    return (this.routes[route], new HttpRequest(request, urlParameters));
+            }
+
+            return (null, new HttpRequest(request, null));
         }
 
         private bool matchRoute(string path, string route, out Dictionary<string, string> urlParams)
