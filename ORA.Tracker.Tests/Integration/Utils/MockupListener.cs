@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace ORA.Tracker.Tests.Utils
+namespace ORA.Tracker.Tests.Integration.Utils
 {
     internal class MockupListener
     {

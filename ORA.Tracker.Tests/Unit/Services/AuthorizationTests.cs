@@ -5,7 +5,7 @@ using FluentAssertions;
 using ORA.Tracker.Services;
 using ORA.Tracker.Models;
 
-namespace ORA.Tracker.Tests.Services
+namespace ORA.Tracker.Tests.Unit.Services
 {
     public class AuthorizationTests
     {

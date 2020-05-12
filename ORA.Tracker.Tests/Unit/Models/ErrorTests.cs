@@ -4,7 +4,7 @@ using FluentAssertions;
 
 using ORA.Tracker.Models;
 
-namespace ORA.Tracker.Tests.Models
+namespace ORA.Tracker.Tests.Unit.Models
 {
     public class ErrorTests
     {

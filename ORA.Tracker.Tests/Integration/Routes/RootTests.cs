@@ -5,9 +5,9 @@ using FluentAssertions;
 using System.Text;
 
 using ORA.Tracker.Models;
-using ORA.Tracker.Tests.Utils;
+using ORA.Tracker.Tests.Integration.Utils;
 
-namespace ORA.Tracker.Routes.Tests
+namespace ORA.Tracker.Tests.Integration.Routes
 {
     public class RootTests
     {

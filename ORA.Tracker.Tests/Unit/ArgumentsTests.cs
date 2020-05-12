@@ -3,7 +3,7 @@ using Xunit;
 using FluentAssertions;
 using ORA.Tracker;
 
-namespace ORA.Tracker.Tests
+namespace ORA.Tracker.Tests.Unit
 {
     public class ArgumentsTests
     {

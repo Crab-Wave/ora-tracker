@@ -4,7 +4,7 @@ using FluentAssertions;
 
 using ORA.Tracker.Services;
 
-namespace ORA.Tracker.Tests.Services
+namespace ORA.Tracker.Tests.Unit.Services
 {
     public class TokenManagerTests
     {
