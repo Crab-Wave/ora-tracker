@@ -32,7 +32,7 @@ namespace ORA.Tracker.Routes
             string token;
             byte[] encryptedToken;
 
-                if (this.services.TokenManager.IsValidToken(id))
+            if (this.services.TokenManager.IsValidToken(id))
                 token = this.services.TokenManager.GetTokenFromId(id);
             else
                 token = this.services.TokenManager.NewToken();
