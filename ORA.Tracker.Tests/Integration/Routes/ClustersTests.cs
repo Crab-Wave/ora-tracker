@@ -6,8 +6,9 @@ using Xunit;
 using FluentAssertions;
 using System.Text;
 
-using ORA.Tracker.Models;
 using ORA.Tracker.Services;
+using ORA.Tracker.Models;
+using ORA.Tracker.Services.Managers;
 using ORA.Tracker.Services.Databases;
 using ORA.Tracker.Tests.Integration.Utils;
 
@@ -15,32 +16,35 @@ namespace ORA.Tracker.Routes.Tests.Integration
 {
     public class ClustersTests
     {
-        private static readonly MockupListener listener = new MockupListener(15302);
+        private static readonly MockupListener listener;
+        private static readonly ServiceCollection services;
 
-        private Clusters testee = new Clusters();
-        private HttpListenerContext context;
+        private MockupClusters testee;
         private string token;
 
         static ClustersTests()
         {
-            ClusterManager.Instance.SetDatabase(new ClusterDatabase("../ClustersTests"));
+            listener = new MockupListener(15302);
+            services = new ServiceCollection(new ClusterDatabase("../ClustersTests"));
         }
 
         public ClustersTests()
         {
-            token = TokenManager.Instance.NewToken();
-            if (!TokenManager.Instance.IsTokenRegistered(token))
-                TokenManager.Instance.RegisterToken(Guid.NewGuid().ToString(), token);
+            this.testee = new MockupClusters(services);
+
+            this.token = this.testee.Services.TokenManager.NewToken();
+            if (!this.testee.Services.TokenManager.IsTokenRegistered(token))
+                this.testee.Services.TokenManager.RegisterToken(Guid.NewGuid().ToString(), token);
         }
 
         [Fact]
         public async void WhenGetExistingCluster_ShouldMatch()
         {
             var c = new Cluster("test", Guid.NewGuid().ToString(), "ownerName");
-            ClusterManager.Instance.Put(c.id.ToString(), c);
+            this.testee.Services.ClusterManager.Put(c.id.ToString(), c);
 
-            context = await listener.GenerateContext("/" + c.id.ToString(), HttpMethod.Get);
-            testee.HandleRequest(context.Request, context.Response)
+            var (request, response) = await listener.GetContext("/" + c.id.ToString(), HttpMethod.Get);
+            testee.HandleRequest(request, response)
                 .Should()
                 .Equals(c.Serialize());
         }
@@ -51,9 +55,8 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string inexistingId = "test";
             string invalidClusterId = new Error("Invalid Cluster id").ToString();
 
-            context = await listener.GenerateContext("/", HttpMethod.Get);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response,
-                    new Dictionary<string, string> { { "id", inexistingId } }))
+            var (request, response) = await listener.GetContext("/", new Dictionary<string, string> { { "id", inexistingId } }, HttpMethod.Get);
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(invalidClusterId))
@@ -63,8 +66,8 @@ namespace ORA.Tracker.Routes.Tests.Integration
         [Fact]
         public async void WhenGetWithoutParameter_ShouldReturn_AllClusters()
         {
-            context = await listener.GenerateContext("/", HttpMethod.Get);
-            testee.HandleRequest(context.Request, context.Response);
+            var (request, response) = await listener.GetContext("/", HttpMethod.Get);
+            testee.HandleRequest(request, response);
 
             // TODO: write test
         }
@@ -74,8 +77,8 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             string missingCredentials = new Error("Missing Credentials").ToString();
 
-            context = await listener.GenerateContext("?name=name", HttpMethod.Post);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+            var (request, response) = await listener.GetContext("?name=name", HttpMethod.Post);
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(missingCredentials))
@@ -86,11 +89,11 @@ namespace ORA.Tracker.Routes.Tests.Integration
         public async void WhenPost_ShouldCreateCluster()
         {
             string clusterName = "test";
-            context = await listener.GenerateContext($"?name={clusterName}&username=ownerName", HttpMethod.Post, token);
+            var (request, response) = await listener.GetContext($"?name={clusterName}&username=ownerName", HttpMethod.Post, token);
 
-            string clusterId = Encoding.UTF8.GetString(testee.HandleRequest(context.Request, context.Response))
+            string clusterId = Encoding.UTF8.GetString(testee.HandleRequest(request, response))
                 .Split(":")[1].Split("\"")[1].Split("\"")[0];   // TODO: Do this more cleanly
-            var c = ClusterManager.Instance.Get(clusterId);
+            var c = this.testee.Services.ClusterManager.Get(clusterId);
 
             c.Should().BeOfType<Cluster>().Which.name.Should().Be(clusterName);
         }
@@ -100,8 +103,8 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             string missingNameParameter = new Error("Missing name Parameter").ToString();
 
-            context = await listener.GenerateContext("/", HttpMethod.Post, token);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+            var (request, response) = await listener.GetContext("/", HttpMethod.Post, token);
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(missingNameParameter))
@@ -113,9 +116,8 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             string missingCredentials = new Error("Missing Credentials").ToString();
 
-            context = await listener.GenerateContext("/", HttpMethod.Delete);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response,
-                    new Dictionary<string, string> { { "id", "id" } }))
+            var (request, response) = await listener.GetContext("/", new Dictionary<string, string> { { "id", "id" } }, HttpMethod.Delete);
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(missingCredentials))
@@ -128,11 +130,10 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string unauthorizedAction = new Error("Unauthorized action").ToString();
 
             Cluster c = new Cluster("test", "notsameid", "ownerName");
-            ClusterManager.Instance.Put(c.id.ToString(), c);
+            this.testee.Services.ClusterManager.Put(c.id.ToString(), c);
 
-            context = await listener.GenerateContext("/", HttpMethod.Delete, token);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response,
-                    new Dictionary<string, string> { { "id", c.id.ToString() } }))
+            var (request, response) = await listener.GetContext("/", new Dictionary<string, string> { { "id", c.id.ToString() } }, HttpMethod.Delete, token);
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(unauthorizedAction))
@@ -142,12 +143,11 @@ namespace ORA.Tracker.Routes.Tests.Integration
         [Fact]
         public async void WhenDeleteExistingClusterAndAuthorized_ShouldReturn_EmptyBody()
         {
-            Cluster c = new Cluster("test", TokenManager.Instance.GetIdFromToken(token), "ownerName");
-            ClusterManager.Instance.Put(c.id.ToString(), c);
+            Cluster c = new Cluster("test", this.testee.Services.TokenManager.GetIdFromToken(token), "ownerName");
+            this.testee.Services.ClusterManager.Put(c.id.ToString(), c);
 
-            context = await listener.GenerateContext("/", HttpMethod.Delete, token);
-            testee.HandleRequest(context.Request, context.Response,
-                    new Dictionary<string, string> { { "id", c.id.ToString() } })
+            var (request, response) = await listener.GetContext("/", new Dictionary<string, string> { { "id", c.id.ToString() } }, HttpMethod.Delete, token);
+            testee.HandleRequest(request, response)
                 .Should()
                 .Equals(new byte[0]);
         }
@@ -158,9 +158,8 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string inexistingId = "test";
             string invalidClusterId = new Error("Invalid Cluster id").ToString();
 
-            context = await listener.GenerateContext("/", HttpMethod.Delete, token);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response,
-                    new Dictionary<string, string> { { "id", inexistingId } }))
+            var (request, response) = await listener.GetContext("/", new Dictionary<string, string> { { "id", inexistingId } }, HttpMethod.Delete, token);
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(invalidClusterId))
@@ -172,8 +171,8 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             string missingClusterId = new Error("Missing Cluster id").ToString();
 
-            context = await listener.GenerateContext("/", HttpMethod.Delete, token);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+            var (request, response) = await listener.GetContext("/", HttpMethod.Delete, token);
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(missingClusterId))
@@ -183,8 +182,8 @@ namespace ORA.Tracker.Routes.Tests.Integration
         [Fact]
         public async void WhenHeadRequest_ShouldReturn_EmptyBody()
         {
-            context = await listener.GenerateContext("/", HttpMethod.Head);
-            testee.HandleRequest(context.Request, context.Response)
+            var (request, response) = await listener.GetContext("/", HttpMethod.Head);
+            testee.HandleRequest(request, response)
                 .Should()
                 .Equals(new byte[0]);
         }
@@ -194,28 +193,27 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             string notFound = new Error("Not Found").ToString();
 
-            context = await listener.GenerateContext("/", HttpMethod.Put);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+            var (request, response) = await listener.GetContext("/", HttpMethod.Put);
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(notFound))
                 .Where(e => e.ErrorCode.Equals(404));
 
-            context = await listener.GenerateContext("/", HttpMethod.Options);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+            (request, response) = await listener.GetContext("/", HttpMethod.Options);
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(notFound))
                 .Where(e => e.ErrorCode.Equals(404));
         }
+    }
 
-        private static void ignoreErrors(Action f)
-        {
-            try
-            {
-                f();
-            }
-            catch { }
-        }
+    internal class MockupClusters : Clusters
+    {
+        public IServiceCollection Services { get => services; }
+
+        public MockupClusters(IServiceCollection services)
+            : base(services) { }
     }
 }

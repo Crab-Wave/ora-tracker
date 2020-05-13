@@ -14,16 +14,15 @@ namespace ORA.Tracker.Routes.Tests.Integration
     {
         private static readonly MockupListener listener = new MockupListener(15303);
 
-        private Authentication testee = new Authentication();
-        private HttpListenerContext context;
+        private Authentication testee = new Authentication(null);
 
         [Fact]
         public async void WhenPostWithoutBody_ShouldThrow_HttpListenerException()
         {
             string missingKey = new Error("Missing key").ToString();
 
-            context = await listener.GenerateContext("/", HttpMethod.Post);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+            var (request, response) = await listener.GetContext("/", HttpMethod.Post);
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(missingKey))
@@ -36,8 +35,8 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string invalidKeyStructure = new Error("Invalid key structure").ToString();
 
             var key = Convert.ToBase64String(new byte[15] { 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 114, 233, 1, 1 });
-            context = await listener.GenerateContext("/", HttpMethod.Post, Encoding.UTF8.GetBytes(key));
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+            var (request, response) = await listener.GetContext("/", HttpMethod.Post, Encoding.UTF8.GetBytes(key));
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(invalidKeyStructure))
@@ -49,9 +48,9 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             string invalidKeyStructure = new Error("Invalid key structure").ToString();
 
-            context = await listener.GenerateContext("/", HttpMethod.Post,
+            var (request, response) = await listener.GetContext("/", HttpMethod.Post,
                 Encoding.UTF8.GetBytes(Convert.ToBase64String(Encoding.UTF8.GetBytes("invalidkeyinvalidkey"))));
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(invalidKeyStructure))
@@ -64,8 +63,8 @@ namespace ORA.Tracker.Routes.Tests.Integration
             var csp = new RSACryptoServiceProvider();
             byte[] publicKey = csp.ExportRSAPublicKey();
 
-            context = await listener.GenerateContext("/", HttpMethod.Post, Encoding.UTF8.GetBytes(Convert.ToBase64String(publicKey)));
-            testee.HandleRequest(context.Request, context.Response);
+            var (request, response) = await listener.GetContext("/", HttpMethod.Post, Encoding.UTF8.GetBytes(Convert.ToBase64String(publicKey)));
+            testee.HandleRequest(request, response);
 
             // TODO: write test
         }
@@ -73,8 +72,8 @@ namespace ORA.Tracker.Routes.Tests.Integration
         [Fact]
         public async void WhenHeadRequest_ShouldReturn_EmptyBody()
         {
-            context = await listener.GenerateContext("/", HttpMethod.Head);
-            testee.HandleRequest(context.Request, context.Response)
+            var (request, response) = await listener.GetContext("/", HttpMethod.Head);
+            testee.HandleRequest(request, response)
                 .Should()
                 .Equals(new byte[0]);
         }
@@ -84,29 +83,29 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             string notFound = new Error("Not Found").ToString();
 
-            context = await listener.GenerateContext("/", HttpMethod.Get);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+            var (request, response) = await listener.GetContext("/", HttpMethod.Get);
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(notFound))
                 .Where(e => e.ErrorCode.Equals(404));
 
-            context = await listener.GenerateContext("/", HttpMethod.Put);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+            (request, response) = await listener.GetContext("/", HttpMethod.Put);
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(notFound))
                 .Where(e => e.ErrorCode.Equals(404));
 
-            context = await listener.GenerateContext("/", HttpMethod.Delete);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+            (request, response) = await listener.GetContext("/", HttpMethod.Delete);
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(notFound))
                 .Where(e => e.ErrorCode.Equals(404));
 
-            context = await listener.GenerateContext("/", HttpMethod.Options);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+            (request, response) = await listener.GetContext("/", HttpMethod.Options);
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(notFound))

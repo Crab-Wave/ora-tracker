@@ -12,14 +12,13 @@ namespace ORA.Tracker.Routes.Tests.Integration
     {
         private static readonly MockupListener listener = new MockupListener(15306);
 
-        private Members testee = new Members();
-        private HttpListenerContext context;
+        private Members testee = new Members(null);
 
         [Fact]
         public async void WhenHeadRequest_ShouldReturn_EmptyBody()
         {
-            context = await listener.GenerateContext("/", HttpMethod.Head);
-            testee.HandleRequest(context.Request, context.Response)
+            var (request, response) = await listener.GetContext("/", HttpMethod.Head);
+            testee.HandleRequest(request, response)
                 .Should()
                 .Equals(new byte[0]);
         }
@@ -29,15 +28,15 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             string notFound = new Error("Not Found").ToString();
 
-            context = await listener.GenerateContext("/", HttpMethod.Put);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+            var (request, response) = await listener.GetContext("/", HttpMethod.Put);
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(notFound))
                 .Where(e => e.ErrorCode.Equals(404));
 
-            context = await listener.GenerateContext("/", HttpMethod.Options);
-            testee.Invoking(t => t.HandleRequest(context.Request, context.Response))
+            (request, response) = await listener.GetContext("/", HttpMethod.Options);
+            testee.Invoking(t => t.HandleRequest(request, response))
                 .Should()
                 .Throw<HttpListenerException>()
                 .Where(e => e.Message.Equals(notFound))
