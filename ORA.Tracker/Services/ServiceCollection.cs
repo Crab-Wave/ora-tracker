@@ -3,7 +3,7 @@ using ORA.Tracker.Services.Databases;
 
 namespace ORA.Tracker.Services
 {
-    public class ServiceConfiguration
+    public class ServiceCollection : IServiceCollection
     {
         private ClusterManager clusterManager;
         private TokenManager tokenManager;
@@ -11,10 +11,10 @@ namespace ORA.Tracker.Services
         public ClusterManager ClusterManager { get => clusterManager; }
         public TokenManager TokenManager { get => tokenManager; }
 
-        public ServiceConfiguration(Arguments arguments)
+        public ServiceCollection(IClusterDatabase clusterDatabase)
         {
             tokenManager = new TokenManager();
-            clusterManager = new ClusterManager(new ClusterDatabase(arguments.ClusterDatabasePath));
+            clusterManager = new ClusterManager(clusterDatabase);
         }
     }
 }
