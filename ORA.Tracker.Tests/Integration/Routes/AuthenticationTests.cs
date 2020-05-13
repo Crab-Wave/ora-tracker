@@ -5,6 +5,8 @@ using Xunit;
 using FluentAssertions;
 using System.Security.Cryptography;
 using System.Text;
+
+using ORA.Tracker.Services;
 using ORA.Tracker.Models;
 using ORA.Tracker.Tests.Integration.Utils;
 
@@ -13,8 +15,14 @@ namespace ORA.Tracker.Routes.Tests.Integration
     public class AuthenticationTests
     {
         private static readonly MockupListener listener = new MockupListener(15303);
+        private static readonly ServiceCollection services = new ServiceCollection(null);
 
-        private Authentication testee = new Authentication(null);
+        private Authentication testee;
+
+        public AuthenticationTests()
+        {
+            this.testee = new Authentication(services);
+        }
 
         [Fact]
         public async void WhenPostWithoutBody_ShouldThrow_HttpListenerException()
