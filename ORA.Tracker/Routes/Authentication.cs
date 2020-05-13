@@ -15,8 +15,8 @@ namespace ORA.Tracker.Routes
         private static readonly string missingKey = new Error("Missing key").ToString();
         private static readonly string invalidKeyStructure = new Error("Invalid key structure").ToString();
 
-        public Authentication(ServiceConfiguration serviceConfiguration)
-            : base(serviceConfiguration) { }
+        public Authentication(IServiceCollection services)
+            : base(services) { }
 
         protected override byte[] post(HttpRequest request, HttpListenerResponse response)
         {
@@ -32,7 +32,7 @@ namespace ORA.Tracker.Routes
             string token;
             byte[] encryptedToken;
 
-            if (this.services.TokenManager.IsValidToken(id))
+                if (this.services.TokenManager.IsValidToken(id))
                 token = this.services.TokenManager.GetTokenFromId(id);
             else
                 token = this.services.TokenManager.NewToken();

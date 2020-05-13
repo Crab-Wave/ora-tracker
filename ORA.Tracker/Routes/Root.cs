@@ -10,8 +10,8 @@ namespace ORA.Tracker.Routes
     {
         private static readonly byte[] welcomeMessage = Encoding.UTF8.GetBytes("Hey welcome to '/'");
 
-        public Root(ServiceConfiguration serviceConfiguration)
-            : base(serviceConfiguration) { }
+        public Root(IServiceCollection services)
+            : base(services) { }
 
         protected override byte[] get(HttpRequest request, HttpListenerResponse response)
             => welcomeMessage;

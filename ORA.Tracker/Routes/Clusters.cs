@@ -15,8 +15,8 @@ namespace ORA.Tracker.Routes
         private static readonly string invalidToken = new Error("Invalid token").ToString();
         private static readonly string unauthorizedAction = new Error("Unauthorized action").ToString();
 
-        public Clusters(ServiceConfiguration serviceConfiguration)
-            : base(serviceConfiguration) { }
+        public Clusters(IServiceCollection services)
+            : base(services) { }
 
         protected override byte[] get(HttpRequest request, HttpListenerResponse response)
         {

@@ -4,7 +4,7 @@ namespace ORA.Tracker.Routes
 {
     public class Files : Route
     {
-        public Files(ServiceConfiguration serviceConfiguration)
-            : base(serviceConfiguration) { }
+        public Files(IServiceCollection services)
+            : base(services) { }
     }
 }

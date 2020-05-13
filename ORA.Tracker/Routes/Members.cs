@@ -15,8 +15,8 @@ namespace ORA.Tracker.Routes
         private static readonly string missingMemberId = new Error("Missing member id").ToString();
         private static readonly string missingMemberName = new Error("Missing member name").ToString();
 
-        public Members(ServiceConfiguration serviceConfiguration)
-            : base(serviceConfiguration) { }
+        public Members(IServiceCollection services)
+            : base(services) { }
 
         protected override byte[] get(HttpRequest request, HttpListenerResponse response)
         {

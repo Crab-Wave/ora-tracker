@@ -10,16 +10,15 @@ using ORA.Tracker.Models;
 
 namespace ORA.Tracker.Routes
 {
-    public abstract class Route : IRoute
+    public abstract class Route
     {
         private static string methodNotAllowed = new Error("Method Not Allowed").ToString();
         private static string notFound = new Error("Not Found").ToString();
 
         private Dictionary<string, Func<HttpRequest, HttpListenerResponse, byte[]>> callbacks;
-        private ServiceConfiguration _services;
-        protected ServiceConfiguration services { get => _services; }
+        protected IServiceCollection services { get; }
 
-        public Route(ServiceConfiguration serviceConfiguration)
+        public Route(IServiceCollection services)
         {
             this.callbacks = new Dictionary<string, Func<HttpRequest, HttpListenerResponse, byte[]>>
             {
@@ -31,7 +30,7 @@ namespace ORA.Tracker.Routes
                 { "OPTIONS", this.options }
             };
 
-            this._services = serviceConfiguration;
+            this.services = services;
         }
 
         public byte[] HandleRequest(HttpRequest request, HttpListenerResponse response)

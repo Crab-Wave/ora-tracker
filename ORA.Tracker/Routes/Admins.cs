@@ -17,8 +17,8 @@ namespace ORA.Tracker.Routes
 
         private static readonly string notClusterAdmin = new Error("id does not correspond to a cluster admin").ToString();
 
-        public Admins(ServiceConfiguration serviceConfiguration)
-            : base(serviceConfiguration) { }
+        public Admins(IServiceCollection services)
+            : base(services) { }
 
         protected override byte[] get(HttpRequest request, HttpListenerResponse response)
         {
