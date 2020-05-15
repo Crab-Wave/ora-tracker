@@ -1,14 +1,10 @@
 using System;
-using System.Net;
 using System.Net.Http;
-using System.Collections.Generic;
 using Xunit;
 using FluentAssertions;
-using System.Text;
 
 using ORA.Tracker.Services;
 using ORA.Tracker.Models;
-using ORA.Tracker.Services.Managers;
 using ORA.Tracker.Services.Databases;
 using ORA.Tracker.Tests.Integration.Utils;
 
@@ -16,7 +12,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
 {
     public class ClustersTests
     {
-        private static readonly MockupListener listener;
+        private static readonly MockupRouter router;
         private static readonly ServiceCollection services;
 
         private MockupClusters testee;
@@ -24,188 +20,166 @@ namespace ORA.Tracker.Routes.Tests.Integration
 
         static ClustersTests()
         {
-            listener = new MockupListener(15302);
             services = new ServiceCollection(new ClusterDatabase("../ClustersTests"));
+            router = new MockupRouter("/clusters/{id}", new MockupClusters(services));
         }
 
         public ClustersTests()
         {
-            this.testee = new MockupClusters(services);
-
-            this.token = this.testee.Services.TokenManager.NewToken();
-            if (!this.testee.Services.TokenManager.IsTokenRegistered(token))
-                this.testee.Services.TokenManager.RegisterToken(Guid.NewGuid().ToString(), token);
+            this.token = services.TokenManager.NewToken();
+            if (!services.TokenManager.IsTokenRegistered(token))
+                services.TokenManager.RegisterToken(Guid.NewGuid().ToString(), token);
         }
 
         [Fact]
-        public async void WhenGetExistingCluster_ShouldMatch()
+        public async void WhenGetExistingCluster_ShouldWithMatchingCluster()
         {
             var c = new Cluster("test", Guid.NewGuid().ToString(), "ownerName");
-            this.testee.Services.ClusterManager.Put(c.id.ToString(), c);
+            services.ClusterManager.Put(c.id.ToString(), c);
 
-            var (request, response) = await listener.GetContext("/" + c.id.ToString(), HttpMethod.Get);
-            testee.HandleRequest(request, response)
-                .Should()
-                .Equals(c.Serialize());
+            var response = await router.GetResponseOf(HttpMethod.Get, $"/clusters/{c.id.ToString()}");
+
+            response.StatusCode.Should().Be(200);
+            response.Content.ReadAsByteArrayAsync().Result.Should().BeEquivalentTo(c.SerializeWithoutMemberName());
         }
 
         [Fact]
-        public async void WhenGetInexistingCluster_ShouldThrow_HttpListenerException()
+        public async void WhenGetInexistingCluster_ShouldRespondWithNotFound()
         {
             string inexistingId = "test";
             string invalidClusterId = new Error("Invalid Cluster id").ToString();
 
-            var (request, response) = await listener.GetContext("/", new Dictionary<string, string> { { "id", inexistingId } }, HttpMethod.Get);
-            testee.Invoking(t => t.HandleRequest(request, response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Equals(invalidClusterId))
-                .Where(e => e.ErrorCode.Equals(404));
+            var response = await router.GetResponseOf(HttpMethod.Get, $"/clusters/{inexistingId}");
+
+            response.StatusCode.Should().Be(404);
+            response.Content.ReadAsStringAsync().Result.Should().Be(invalidClusterId);
         }
 
         [Fact]
-        public async void WhenGetWithoutParameter_ShouldReturn_AllClusters()
+        public async void WhenGetWithoutParameter_ShouldRespondWithAllClusters()
         {
-            var (request, response) = await listener.GetContext("/", HttpMethod.Get);
-            testee.HandleRequest(request, response);
+            var response = await router.GetResponseOf(HttpMethod.Get, "/clusters");
+
+            response.StatusCode.Should().Be(200);
 
             // TODO: write test
         }
 
         [Fact]
-        public async void WhenPostWithoutCredentials_ShouldThrow_HttpListenerException()
+        public async void WhenPostWithoutCredentials_ShouldRespondWithBadRequest()
         {
-            string missingCredentials = new Error("Missing Credentials").ToString();
+            string missingCredentials = new Error("Missing credentials").ToString();
 
-            var (request, response) = await listener.GetContext("?name=name", HttpMethod.Post);
-            testee.Invoking(t => t.HandleRequest(request, response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Equals(missingCredentials))
-                .Where(e => e.ErrorCode.Equals(401));
+            var response = await router.GetResponseOf(HttpMethod.Post, "/clusters?name=name");
+
+            response.StatusCode.Should().Be(400);
+            response.Content.ReadAsStringAsync().Result.Should().Be(missingCredentials);
         }
 
         [Fact]
-        public async void WhenPost_ShouldCreateCluster()
+        public async void WhenPost_ShouldCreateClusterAndRespondWithClusterId()
         {
             string clusterName = "test";
-            var (request, response) = await listener.GetContext($"?name={clusterName}&username=ownerName", HttpMethod.Post, token);
+            var response = await router.GetResponseOf(HttpMethod.Post, $"/clusters?name={clusterName}&username=ownername", null, this.token);
 
-            string clusterId = Encoding.UTF8.GetString(testee.HandleRequest(request, response))
-                .Split(":")[1].Split("\"")[1].Split("\"")[0];   // TODO: Do this more cleanly
-            var c = this.testee.Services.ClusterManager.Get(clusterId);
+            string clusterId = response.Content.ReadAsStringAsync().Result.Split(":")[1].Split("\"")[1].Split("\"")[0];   // TODO: Do this more cleanly
+            var c = services.ClusterManager.Get(clusterId);
 
             c.Should().BeOfType<Cluster>().Which.name.Should().Be(clusterName);
         }
 
         [Fact]
-        public async void WhenPostWithoutNameParameter_ShouldThrow_HttpListenerException()
+        public async void WhenPostWithoutNameParameter_ShouldRespondWithBadRequest()
         {
-            string missingNameParameter = new Error("Missing name Parameter").ToString();
+            string missingNameParameter = new Error("Missing query parameter name").ToString();
 
-            var (request, response) = await listener.GetContext("/", HttpMethod.Post, token);
-            testee.Invoking(t => t.HandleRequest(request, response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Equals(missingNameParameter))
-                .Where(e => e.ErrorCode.Equals(400));
+            var response = await router.GetResponseOf(HttpMethod.Post, "/clusters", null, token);
+
+            response.StatusCode.Should().Be(400);
+            response.Content.ReadAsStringAsync().Result.Should().Be(missingNameParameter);
         }
 
         [Fact]
-        public async void WhenDeleteWithoutCredentials_ShouldThrow_HttpListenerException()
+        public async void WhenDeleteWithoutCredentials_ShouldRespondWithBadRequest()
         {
-            string missingCredentials = new Error("Missing Credentials").ToString();
+            string missingCredentials = new Error("Missing credentials").ToString();
 
-            var (request, response) = await listener.GetContext("/", new Dictionary<string, string> { { "id", "id" } }, HttpMethod.Delete);
-            testee.Invoking(t => t.HandleRequest(request, response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Equals(missingCredentials))
-                .Where(e => e.ErrorCode.Equals(401));
+            var response = await router.GetResponseOf(HttpMethod.Delete, "/clusters/id");
+
+            response.StatusCode.Should().Be(400);
+            response.Content.ReadAsStringAsync().Result.Should().Be(missingCredentials);
         }
 
         [Fact]
-        public async void WhenDeleteAndUnauthorized_ShouldThrow_HttpListenerException()
+        public async void WhenDeleteAndUnauthorized_ShouldRespondWithForbidden()
         {
             string unauthorizedAction = new Error("Unauthorized action").ToString();
 
             Cluster c = new Cluster("test", "notsameid", "ownerName");
-            this.testee.Services.ClusterManager.Put(c.id.ToString(), c);
+            services.ClusterManager.Put(c.id.ToString(), c);
 
-            var (request, response) = await listener.GetContext("/", new Dictionary<string, string> { { "id", c.id.ToString() } }, HttpMethod.Delete, token);
-            testee.Invoking(t => t.HandleRequest(request, response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Equals(unauthorizedAction))
-                .Where(e => e.ErrorCode.Equals(403));
+            var response = await router.GetResponseOf(HttpMethod.Delete, $"/clusters/{c.id.ToString()}", null, token);
+
+            response.StatusCode.Should().Be(403);
+            response.Content.ReadAsStringAsync().Result.Should().Be(unauthorizedAction);
         }
 
         [Fact]
-        public async void WhenDeleteExistingClusterAndAuthorized_ShouldReturn_EmptyBody()
+        public async void WhenDeleteExistingClusterAndAuthorized_ShouldRespondWithEmptyBody()
         {
-            Cluster c = new Cluster("test", this.testee.Services.TokenManager.GetIdFromToken(token), "ownerName");
-            this.testee.Services.ClusterManager.Put(c.id.ToString(), c);
+            Cluster c = new Cluster("test", services.TokenManager.GetIdFromToken(token), "ownerName");
+            services.ClusterManager.Put(c.id.ToString(), c);
 
-            var (request, response) = await listener.GetContext("/", new Dictionary<string, string> { { "id", c.id.ToString() } }, HttpMethod.Delete, token);
-            testee.HandleRequest(request, response)
-                .Should()
-                .Equals(new byte[0]);
+            var response = await router.GetResponseOf(HttpMethod.Delete, $"/clusters/{c.id.ToString()}", null, token);
+
+            response.StatusCode.Should().Be(200);
+            response.Content.ReadAsByteArrayAsync().Result.Should().BeEmpty();
         }
 
         [Fact]
-        public async void WhenDeleteInexistingCluster_ShouldThrow_HttpListenerException()
+        public async void WhenDeleteInexistingCluster_ShouldRespondWithNotFound()
         {
             string inexistingId = "test";
             string invalidClusterId = new Error("Invalid Cluster id").ToString();
 
-            var (request, response) = await listener.GetContext("/", new Dictionary<string, string> { { "id", inexistingId } }, HttpMethod.Delete, token);
-            testee.Invoking(t => t.HandleRequest(request, response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Equals(invalidClusterId))
-                .Where(e => e.ErrorCode.Equals(404));
+            var response = await router.GetResponseOf(HttpMethod.Delete, $"/clusters/{inexistingId}", null, token);
+
+            response.StatusCode.Should().Be(404);
+            response.Content.ReadAsStringAsync().Result.Should().Be(invalidClusterId);
         }
 
         [Fact]
-        public async void WhenDeleteWithoutClusterId_ShouldThrow_HttpListenerException()
+        public async void WhenDeleteWithoutClusterId_ShouldRespondWithBadRequest()
         {
             string missingClusterId = new Error("Missing Cluster id").ToString();
 
-            var (request, response) = await listener.GetContext("/", HttpMethod.Delete, token);
-            testee.Invoking(t => t.HandleRequest(request, response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Equals(missingClusterId))
-                .Where(e => e.ErrorCode.Equals(400));
+            var response = await router.GetResponseOf(HttpMethod.Delete, "/clusters", null, token);
+
+            response.StatusCode.Should().Be(400);
+            response.Content.ReadAsStringAsync().Result.Should().Be(missingClusterId);
         }
 
         [Fact]
-        public async void WhenHeadRequest_ShouldReturn_EmptyBody()
+        public async void WhenHeadRequest_ShouldRespondWithNotFoundAndEmptyBody()
         {
-            var (request, response) = await listener.GetContext("/", HttpMethod.Head);
-            testee.HandleRequest(request, response)
-                .Should()
-                .Equals(new byte[0]);
+            var response = await router.GetResponseOf(HttpMethod.Head, "/clusters");
+
+            response.StatusCode.Should().Be(404);
+            response.Content.ReadAsByteArrayAsync().Result.Should().BeEmpty();
         }
 
         [Fact]
-        public async void WhenUnhandledMethodRequest_ShoudlThrow_HttpListenerException()
+        public async void WhenUnhandledMethodRequest_ShouldRespondWithNotFound()
         {
             string notFound = new Error("Not Found").ToString();
 
-            var (request, response) = await listener.GetContext("/", HttpMethod.Put);
-            testee.Invoking(t => t.HandleRequest(request, response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Equals(notFound))
-                .Where(e => e.ErrorCode.Equals(404));
+            var response = await router.GetResponseOf(HttpMethod.Put, "/clusters");
+            response.StatusCode.Should().Be(404);
+            response.Content.ReadAsStringAsync().Result.Should().Be(notFound);
 
-            (request, response) = await listener.GetContext("/", HttpMethod.Options);
-            testee.Invoking(t => t.HandleRequest(request, response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Equals(notFound))
-                .Where(e => e.ErrorCode.Equals(404));
+            response = await router.GetResponseOf(HttpMethod.Options, "/clusters");
+            response.StatusCode.Should().Be(404);
+            response.Content.ReadAsStringAsync().Result.Should().Be(notFound);
         }
     }
 

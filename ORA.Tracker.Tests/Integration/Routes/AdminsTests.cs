@@ -1,8 +1,6 @@
-using System.Net;
 using System.Net.Http;
 using Xunit;
 using FluentAssertions;
-using System.Text;
 
 using ORA.Tracker.Models;
 using ORA.Tracker.Tests.Integration.Utils;
@@ -11,37 +9,29 @@ namespace ORA.Tracker.Routes.Tests.Integration
 {
     public class AdminsTests
     {
-        private static readonly MockupListener listener = new MockupListener(15304);
-
-        private Admins testee = new Admins(null);
+        private static readonly MockupRouter router = new MockupRouter("/clusters/{id}/admins", new Admins(null));
 
         [Fact]
-        public async void WhenHeadRequest_ShouldReturn_EmptyBody()
+        public async void WhenHeadRequest_ShouldRespondWithNotFoundAndEmptyBody()
         {
-            var (request, response) = await listener.GetContext("/", HttpMethod.Head);
-            testee.HandleRequest(request, response)
-                .Should()
-                .Equals(new byte[0]);
+            var response = await router.GetResponseOf(HttpMethod.Head, "/clusters/id/admins");
+
+            response.StatusCode.Should().Be(404);
+            response.Content.ReadAsByteArrayAsync().Result.Should().BeEmpty();
         }
 
         [Fact]
-        public async void WhenUnhandledMethodRequest_ShouldThrow_HttpListenerException()
+        public async void WhenUnhandledMethodRequest_ShouldRespondWithNotFound()
         {
             string notFound = new Error("Not Found").ToString();
 
-            var (request, response) = await listener.GetContext("/", HttpMethod.Put);
-            testee.Invoking(t => t.HandleRequest(request, response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Equals(notFound))
-                .Where(e => e.ErrorCode.Equals(404));
+            var response = await router.GetResponseOf(HttpMethod.Put, "/clusters/id/admins");
+            response.StatusCode.Should().Be(404);
+            response.Content.ReadAsStringAsync().Result.Should().Be(notFound);
 
-            (request, response) = await listener.GetContext("/", HttpMethod.Options);
-            testee.Invoking(t => t.HandleRequest(request, response))
-                .Should()
-                .Throw<HttpListenerException>()
-                .Where(e => e.Message.Equals(notFound))
-                .Where(e => e.ErrorCode.Equals(404));
+            response = await router.GetResponseOf(HttpMethod.Options, "/clusters/id/admins");
+            response.StatusCode.Should().Be(404);
+            response.Content.ReadAsStringAsync().Result.Should().Be(notFound);
         }
     }
 }
