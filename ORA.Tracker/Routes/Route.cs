@@ -58,7 +58,7 @@ namespace ORA.Tracker.Routes
                     handlers.Add(new HttpRequestHandler((attributes as Authenticate).GetHandler(this.services), null));
 
                 if (handlers.Count > 1)
-                        handlers[handlers.Count-2].Next = handlers.Last();
+                    handlers[handlers.Count-2].Next = handlers.Last();
             }
 
             handlers.Add(new HttpRequestHandler((request, response, next) =>

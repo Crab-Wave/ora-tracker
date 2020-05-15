@@ -20,7 +20,8 @@ namespace ORA.Tracker.Http
         public NameValueCollection QueryString { get => this.request.QueryString; }
         public Dictionary<string, string> UrlParameters { get => urlParameters; }
         public byte[] Body { get => this.body ?? (this.body = this.getBody()); }
-        public string Token {
+        public string Token
+        {
             get => this.token;
             set
             {
