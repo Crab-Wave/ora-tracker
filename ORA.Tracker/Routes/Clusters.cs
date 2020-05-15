@@ -3,72 +3,79 @@ using System.Net;
 using ORA.Tracker.Http;
 using ORA.Tracker.Services;
 using ORA.Tracker.Models;
+using ORA.Tracker.Routes.Attributes;
 
 namespace ORA.Tracker.Routes
 {
     public class Clusters : Route
     {
-        private static readonly string missingNameParameter = new Error("Missing name Parameter").ToString();
-        private static readonly string missingUsernameParameter = new Error("Missing username Parameter").ToString();
-        private static readonly string missingClusterId = new Error("Missing Cluster id").ToString();
-        private static readonly string invalidClusterId = new Error("Invalid Cluster id").ToString();
-        private static readonly string invalidToken = new Error("Invalid token").ToString();
-        private static readonly string unauthorizedAction = new Error("Unauthorized action").ToString();
+        private static readonly byte[] invalidClusterId = new Error("Invalid Cluster id").ToBytes();
+        private static readonly byte[] missingClusterId = new Error("Missing Cluster id").ToBytes();
+        private static readonly byte[] unauthorizedAction = new Error("Unauthorized action").ToBytes();
 
         public Clusters(IServiceCollection services)
             : base(services) { }
 
-        protected override byte[] get(HttpRequest request, HttpListenerResponse response)
+        protected override void get(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
-                return this.services.ClusterManager.GetAll();
+            {
+                response.Close(this.services.ClusterManager.GetAll(), true);
+                return;
+            }
 
-            var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"])
-                ?? throw new HttpListenerException(404, invalidClusterId);
+            var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (cluster == null)
+            {
+                response.NotFound(invalidClusterId);
+                return;
+            }
 
-            return cluster.SerializeWithoutMemberName();
+            response.Close(cluster.SerializeWithoutMemberName(), true);
         }
 
-        protected override byte[] post(HttpRequest request, HttpListenerResponse response)
+        [Authenticate]
+        [RequiredQueryParameters("name", "username")]
+        protected override void post(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
-            string token = Services.Authorization.GetToken(request.Headers);
-
-            string name = request.QueryString.GetValues("name")?[0]
-                ?? throw new HttpListenerException(400, missingNameParameter);
-
-            string username = request.QueryString.GetValues("username")?[0]
-                ?? throw new HttpListenerException(400, missingUsernameParameter);
-
-            if (!this.services.TokenManager.IsValidToken(token))
-                throw new HttpListenerException(400, invalidToken);
-
+            string token = request.Token;
             this.services.TokenManager.RefreshToken(token);
 
-            Cluster cluster = new Cluster(name, this.services.TokenManager.GetIdFromToken(token), username);
+            var cluster = new Cluster(request.QueryString["name"],
+                this.services.TokenManager.GetIdFromToken(token), request.QueryString["username"]);
             this.services.ClusterManager.Put(cluster.id.ToString(), cluster);
 
-            return cluster.SerializeId();
+            response.Close(cluster.SerializeId(), true);
         }
 
-        protected override byte[] delete(HttpRequest request, HttpListenerResponse response)
+        [Authenticate]
+        protected override void delete(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
-            string token = Services.Authorization.GetToken(request.Headers);
+            string token = request.Token;
 
             if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
-                throw new HttpListenerException(400, missingClusterId);
-
-            if (!this.services.TokenManager.IsValidToken(token))
-                throw new HttpListenerException(400, invalidToken);
+            {
+                response.BadRequest(missingClusterId);
+                return;
+            }
 
             this.services.TokenManager.RefreshToken(token);
 
-            var c = this.services.ClusterManager.Get(request.UrlParameters["id"])
-                ?? throw new HttpListenerException(404, invalidClusterId);
+            var c = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (c == null)
+            {
+                response.NotFound(invalidClusterId);
+                return;
+            }
+
             if (this.services.TokenManager.GetIdFromToken(token) != c.owner)
-                throw new HttpListenerException(403, unauthorizedAction);
+            {
+                response.Forbidden(unauthorizedAction);
+                return;
+            }
 
             this.services.ClusterManager.Delete(request.UrlParameters["id"]);
-            return new byte[0];
+            response.Close();
         }
     }
 }

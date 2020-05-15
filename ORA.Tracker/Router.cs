@@ -2,7 +2,6 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Collections.Generic;
-using System.IO;
 
 using ORA.Tracker.Routes;
 using ORA.Tracker.Models;
@@ -13,53 +12,47 @@ namespace ORA.Tracker
 {
     public class Router
     {
-        private static readonly Logger logger = new Logger();
         private static readonly byte[] unknownError = new Error("Unknown Error").ToBytes();
         private static readonly byte[] notFound = new Error("Not Found").ToBytes();
 
+        private Logger logger;
         private Dictionary<string, Route> routes;
 
-        public Router() => this.routes = new Dictionary<string, Route>();
+        public Router()
+        {
+            this.logger = new Logger();
+            this.routes = new Dictionary<string, Route>();
+        }
 
         public void RegisterRoute(string path, Route route) => this.routes.Add(path, route);
 
         public void HandleRequest(HttpListenerContext context)
         {
-            var body = new byte[0];
-
             var (route, request) = this.getHandlingContext(context.Request);
-
             if (route == null)
             {
-                logger.Error("Unhandled route");
+                logger.Error($"Unhandled route: {context.Request.RawUrl.Split("?")[0]}");
 
-                context.Response.StatusCode = 404;
-                if (context.Request.HttpMethod != HttpMethod.Head.ToString())
-                    body = notFound;
+                if (request.HttpMethod == HttpMethod.Head.ToString())
+                    context.Response.NotFound(new byte[] { });
+                else
+                    context.Response.NotFound(notFound);
+                return;
             }
-            else
+
+            try
             {
-                try
-                {
-                    body = route.HandleRequest(request, context.Response);
-                }
-                catch (HttpListenerException e)
-                {
-                    logger.Error(e);
-
-                    context.Response.StatusCode = e.ErrorCode;
-                    body = System.Text.Encoding.UTF8.GetBytes(e.Message);
-                }
-                catch (Exception e)
-                {
-                    logger.Error(e);
-
-                    context.Response.StatusCode = 520;
-                    body = unknownError;
-                }
+                route.HandleRequest(request, context.Response);
             }
+            catch (Exception e)
+            {
+                logger.Error($"Unknown Error:\n{e}");
 
-            this.sendResponse(body, context.Response);
+                if (request.HttpMethod == HttpMethod.Head.ToString())
+                    context.Response.UnknownError(new byte[] { });
+                else
+                    context.Response.UnknownError(unknownError);
+            }
         }
 
         private (Route, HttpRequest) getHandlingContext(HttpListenerRequest request)
@@ -125,25 +118,6 @@ namespace ORA.Tracker
             if (!(i >= path.Length && j >= route.Length))
                 urlParams = null;
             return i >= path.Length && j >= route.Length;
-        }
-
-        private bool sendResponse(byte[] buffer, HttpListenerResponse response)
-        {
-            response.ContentLength64 = buffer.Length;
-            Stream output = response.OutputStream;
-
-            try
-            {
-                output.Write(buffer, 0, buffer.Length);
-                output.Close();
-            }
-            catch (Exception e)
-            {
-                logger.Error(e);
-                return false;
-            }
-
-            return true;
         }
     }
 }

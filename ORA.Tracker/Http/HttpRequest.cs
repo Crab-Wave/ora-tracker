@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -19,7 +20,15 @@ namespace ORA.Tracker.Http
         public NameValueCollection QueryString { get => this.request.QueryString; }
         public Dictionary<string, string> UrlParameters { get => urlParameters; }
         public byte[] Body { get => this.body ?? (this.body = this.getBody()); }
-        public string Token { get => this.token ?? (this.token = Services.Authorization.GetToken(this.request.Headers)); }
+        public string Token {
+            get => this.token;
+            set
+            {
+                if (this.token != null)
+                    throw new Exception("Not allowed to set token when it is already set.");
+                this.token = value;
+            }
+        }
 
         public HttpRequest(HttpListenerRequest request, Dictionary<string, string> urlParameters)
         {

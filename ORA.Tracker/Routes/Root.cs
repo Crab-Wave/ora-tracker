@@ -13,7 +13,7 @@ namespace ORA.Tracker.Routes
         public Root(IServiceCollection services)
             : base(services) { }
 
-        protected override byte[] get(HttpRequest request, HttpListenerResponse response)
-            => welcomeMessage;
+        protected override void get(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
+            => response.Close(welcomeMessage, true);
     }
 }

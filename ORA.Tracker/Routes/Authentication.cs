@@ -12,21 +12,27 @@ namespace ORA.Tracker.Routes
 {
     public class Authentication : Route
     {
-        private static readonly string missingKey = new Error("Missing key").ToString();
-        private static readonly string invalidKeyStructure = new Error("Invalid key structure").ToString();
+        private static readonly byte[] missingKey = new Error("Missing key").ToBytes();
+        private static readonly byte[] invalidKeyStructure = new Error("Invalid key structure").ToBytes();
 
         public Authentication(IServiceCollection services)
             : base(services) { }
 
-        protected override byte[] post(HttpRequest request, HttpListenerResponse response)
+        protected override void post(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             if (!request.HasEntityBody)
-                throw new HttpListenerException(400, missingKey);
+            {
+                response.BadRequest(missingKey);
+                return;
+            }
 
             byte[] publicKey = Convert.FromBase64String(Encoding.Default.GetString(request.Body));
 
             if (publicKey.Length < 16)
-                throw new HttpListenerException(400, invalidKeyStructure);
+            {
+                response.BadRequest(invalidKeyStructure);
+                return;
+            }
 
             string id = new Guid(publicKey.Take(16).ToArray()).ToString();
             string token;
@@ -45,14 +51,15 @@ namespace ORA.Tracker.Routes
             }
             catch (CryptographicException)
             {
-                throw new HttpListenerException(400, invalidKeyStructure);
+                response.BadRequest(invalidKeyStructure);
+                return;
             }
 
             if (!this.services.TokenManager.IsRegistered(id))
                 this.services.TokenManager.RegisterToken(id, token);
             // Refresh token if id is registered ?
 
-            return Encoding.UTF8.GetBytes(Convert.ToBase64String(encryptedToken));
+            response.Close(Encoding.UTF8.GetBytes(Convert.ToBase64String(encryptedToken)), true);
         }
     }
 }
