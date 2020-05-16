@@ -17,7 +17,6 @@ namespace ORA.Tracker.Routes
         private static byte[] notFound = new Error("Not Found").ToBytes();
 
         protected IServiceCollection services { get; }
-        protected delegate void Callback(HttpRequest request, HttpListenerResponse response, Callback next);
         private Dictionary<string, HttpRequestHandler> handlers;
 
         public Route(IServiceCollection services)
