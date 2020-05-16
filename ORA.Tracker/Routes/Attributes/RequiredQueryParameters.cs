@@ -25,19 +25,13 @@ namespace ORA.Tracker.Routes.Attributes
                 {
                     if (request.QueryString.GetValues(p) == null)
                     {
-                        handleMissingQueryParameter(p, response);
+                        response.BadRequest(new Error($"Missing query parameter {p}").ToBytes());
                         return;
                     }
                 }
 
                 next.Handle(request, response);
             };
-        }
-
-        private static void handleMissingQueryParameter(string parameter, HttpListenerResponse response)
-        {
-            response.StatusCode = 400;
-            response.Close(new Error($"Missing query parameter {parameter}").ToBytes(), true);
         }
     }
 }
