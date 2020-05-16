@@ -44,8 +44,8 @@ namespace ORA.Tracker.Routes
             response.Close(c.SerializeMembers(), true);
         }
 
-        [RequiredQueryParameters("id", "name")]
         [Authenticate]
+        [RequiredQueryParameters("id", "name")]
         protected override void post(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
@@ -74,8 +74,8 @@ namespace ORA.Tracker.Routes
             response.Close();
         }
 
-        [RequiredQueryParameters("id")]
         [Authenticate]
+        [RequiredQueryParameters("id")]
         protected override void delete(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
