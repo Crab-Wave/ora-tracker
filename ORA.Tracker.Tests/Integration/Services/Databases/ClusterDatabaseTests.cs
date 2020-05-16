@@ -56,6 +56,10 @@ namespace ORA.Tracker.Services.Databases.Tests.Integration
             var key = Encoding.UTF8.GetBytes(cluster.id.ToString());
             testee.Put(key, cluster.Serialize());
 
+            testee.Get(key)
+                .Should()
+                .NotBeNull();
+
             testee.Delete(key);
 
             testee.Get(key)
@@ -64,7 +68,7 @@ namespace ORA.Tracker.Services.Databases.Tests.Integration
         }
 
         [Fact]
-        public void Delete_WhenClusterDoesNotExists_ShouldDoNothing()
+        public void Delete_WhenClusterDoesNotExist_ShouldDoNothing()
         {
             var unexistingKey = Encoding.UTF8.GetBytes("unexistingKey");
 
