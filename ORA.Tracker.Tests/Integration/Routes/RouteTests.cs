@@ -9,7 +9,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
 {
     public class RouteTests
     {
-        private static readonly MockupRouter router = new MockupRouter("/", new MockRoute());
+        private static readonly MockupRouter router = new MockupRouter("/", new MockupRoute());
 
         [Fact]
         public async void WhenHeadRequest_ShouldRespondWithNotFoundAndEmptyBody()
@@ -47,9 +47,9 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
     }
 
-    internal class MockRoute : Route
+    internal class MockupRoute : Route
     {
-        public MockRoute()
+        public MockupRoute()
             : base(null) { }
     }
 }
