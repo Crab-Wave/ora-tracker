@@ -15,7 +15,6 @@ namespace ORA.Tracker.Routes.Tests.Integration
         private static readonly MockupRouter router;
         private static readonly ServiceCollection services;
 
-        private MockupClusters testee;
         private string token;
 
         static ClustersTests()
