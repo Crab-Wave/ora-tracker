@@ -72,6 +72,7 @@ namespace ORA.Tracker.Services.Managers.Tests.Unit
                 .BeNull();
         }
 
+        [Fact]
         public void Delete_WhenClusterDoesNotExist_ShouldDoNothing()
         {
             var unexistingId = "unexistingId";
