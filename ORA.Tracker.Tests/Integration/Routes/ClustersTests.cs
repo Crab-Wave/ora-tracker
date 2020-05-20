@@ -79,7 +79,12 @@ namespace ORA.Tracker.Routes.Tests.Integration
         public async void WhenPost_ShouldCreateClusterAndRespondWithClusterId()
         {
             string clusterName = "test";
-            var response = await router.GetResponseOf(HttpMethod.Post, $"/clusters?name={clusterName}&username=ownername", null, this.token);
+
+            var request = new MockupRouterRequest(HttpMethod.Post, $"/clusters?name={clusterName}&username=ownername")
+            {
+                Credentials = this.token
+            };
+            var response = await router.GetResponseOf(request);
 
             string clusterId = response.Content.ReadAsStringAsync().Result.Split(":")[1].Split("\"")[1].Split("\"")[0];   // TODO: Do this more cleanly
             var c = services.ClusterManager.Get(clusterId);
@@ -92,7 +97,11 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             string missingNameParameter = new Error("Missing query parameter name").ToString();
 
-            var response = await router.GetResponseOf(HttpMethod.Post, "/clusters", null, token);
+            var request = new MockupRouterRequest(HttpMethod.Post, "/clusters")
+            {
+                Credentials = this.token
+            };
+            var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(400);
             response.Content.ReadAsStringAsync().Result.Should().Be(missingNameParameter);
@@ -117,7 +126,11 @@ namespace ORA.Tracker.Routes.Tests.Integration
             Cluster c = new Cluster("test", "notsameid", "ownerName");
             services.ClusterManager.Put(c.id.ToString(), c);
 
-            var response = await router.GetResponseOf(HttpMethod.Delete, $"/clusters/{c.id.ToString()}", null, token);
+            var request = new MockupRouterRequest(HttpMethod.Delete, $"/clusters/{c.id.ToString()}")
+            {
+                Credentials = token
+            };
+            var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(403);
             response.Content.ReadAsStringAsync().Result.Should().Be(unauthorizedAction);
@@ -129,7 +142,11 @@ namespace ORA.Tracker.Routes.Tests.Integration
             Cluster c = new Cluster("test", services.TokenManager.GetIdFromToken(token), "ownerName");
             services.ClusterManager.Put(c.id.ToString(), c);
 
-            var response = await router.GetResponseOf(HttpMethod.Delete, $"/clusters/{c.id.ToString()}", null, token);
+            var request = new MockupRouterRequest(HttpMethod.Delete, $"/clusters/{c.id.ToString()}")
+            {
+                Credentials = token
+            };
+            var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(200);
             response.Content.ReadAsByteArrayAsync().Result.Should().BeEmpty();
@@ -141,7 +158,11 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string inexistingId = "test";
             string invalidClusterId = new Error("Invalid Cluster id").ToString();
 
-            var response = await router.GetResponseOf(HttpMethod.Delete, $"/clusters/{inexistingId}", null, token);
+            var request = new MockupRouterRequest(HttpMethod.Delete, $"/clusters/{inexistingId}")
+            {
+                Credentials = token
+            };
+            var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(404);
             response.Content.ReadAsStringAsync().Result.Should().Be(invalidClusterId);
@@ -152,7 +173,11 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             string missingClusterId = new Error("Missing Cluster id").ToString();
 
-            var response = await router.GetResponseOf(HttpMethod.Delete, "/clusters", null, token);
+            var request = new MockupRouterRequest(HttpMethod.Delete, "/clusters")
+            {
+                Credentials = token
+            };
+            var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(400);
             response.Content.ReadAsStringAsync().Result.Should().Be(missingClusterId);

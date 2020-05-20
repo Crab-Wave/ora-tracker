@@ -29,9 +29,9 @@ namespace ORA.Tracker.Tests.Integration.Utils
                 this.listener.Start();
         }
 
-        public async Task<HttpResponseMessage> GetResponseOf(HttpMethod method, string path, byte[] body, string credentials)
+        public async Task<HttpResponseMessage> GetResponseOf(MockupRouterRequest request)
         {
-            var responseMessage = sendRequest(method, this.listenerUri + path, body, credentials);
+            var responseMessage = sendRequest(request.Method, this.listenerUri + request.Path, request.Body, request.Authorization);
 
             var context = await this.listener.GetContextAsync();
             this.router.HandleRequest(context);
@@ -39,20 +39,17 @@ namespace ORA.Tracker.Tests.Integration.Utils
             return await responseMessage;
         }
 
-        public Task<HttpResponseMessage> GetResponseOf(HttpMethod method, string path, byte[] body)
-            => this.GetResponseOf(method, path, body, null);
-
         public Task<HttpResponseMessage> GetResponseOf(HttpMethod method, string path)
-            => this.GetResponseOf(method, path, null, null);
+            => this.GetResponseOf(new MockupRouterRequest(method, path));
 
-        private async Task<HttpResponseMessage> sendRequest(HttpMethod method, string uri, byte[] bodyContent, string credentials)
+        private async Task<HttpResponseMessage> sendRequest(HttpMethod method, string uri, byte[] bodyContent, AuthenticationHeaderValue authorizationHeader)
         {
             HttpRequestMessage message = new HttpRequestMessage(method, uri);
 
             if (bodyContent != null)
                 message.Content = new ByteArrayContent(bodyContent);
-            if (credentials != null)
-                message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", credentials);
+
+            message.Headers.Authorization = authorizationHeader;
 
             return await client.SendAsync(message);
         }
