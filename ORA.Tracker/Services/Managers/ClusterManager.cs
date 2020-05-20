@@ -7,9 +7,9 @@ namespace ORA.Tracker.Services.Managers
 {
     public class ClusterManager
     {
-        private IClusterDatabase database;
+        private IDatabase database;
 
-        public ClusterManager(IClusterDatabase database)
+        public ClusterManager(IDatabase database)
         {
             this.database = database;
         }

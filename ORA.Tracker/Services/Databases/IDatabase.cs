@@ -1,15 +1,13 @@
-using ORA.Tracker.Models;
-
 namespace ORA.Tracker.Services.Databases
 {
-    public interface IClusterDatabase
+    public interface IDatabase
     {
         void Close();
 
         byte[] Get(byte[] key);
         byte[] GetAll();
 
-        void Put(byte[] key, byte[] cluster);
+        void Put(byte[] key, byte[] data);
 
         void Delete(byte[] key);
     }

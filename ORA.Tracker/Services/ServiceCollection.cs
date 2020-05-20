@@ -11,7 +11,7 @@ namespace ORA.Tracker.Services
         public ClusterManager ClusterManager { get => clusterManager; }
         public TokenManager TokenManager { get => tokenManager; }
 
-        public ServiceCollection(IClusterDatabase clusterDatabase)
+        public ServiceCollection(IDatabase clusterDatabase)
         {
             tokenManager = new TokenManager();
             clusterManager = new ClusterManager(clusterDatabase);

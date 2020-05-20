@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 using System.Text.Json;
 using System.Collections.Generic;
@@ -8,7 +7,7 @@ using ORA.Tracker.Models;
 
 namespace ORA.Tracker.Services.Databases
 {
-    public class ClusterDatabase : IClusterDatabase
+    public class ClusterDatabase : IDatabase
     {
         private DB database = null;
 

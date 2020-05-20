@@ -85,7 +85,7 @@ namespace ORA.Tracker.Services.Managers.Tests.Unit
         }
     }
 
-    internal class MockupClusterDatabase : IClusterDatabase
+    internal class MockupClusterDatabase : IDatabase
     {
         private Dictionary<string, Cluster> database;
 
