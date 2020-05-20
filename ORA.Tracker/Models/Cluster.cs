@@ -58,9 +58,6 @@ namespace ORA.Tracker.Models
 
         public Cluster() { }
 
-        public Cluster(string name, string owner, string ownerName)
-            : this(Guid.NewGuid(), name, owner, ownerName, new Dictionary<string, string>(), new List<string>(), new List<string>()) { }
-
         public Cluster(Guid id, string name, string owner, string ownerName, Dictionary<string, string> members, List<string> admins, List<string> files)
         {
             this.id = id;
@@ -73,6 +70,9 @@ namespace ORA.Tracker.Models
             if (!members.ContainsKey(owner))
                 this.members.Add(owner, ownerName);
         }
+
+        public Cluster(string name, string owner, string ownerName)
+            : this(Guid.NewGuid(), name, owner, ownerName, new Dictionary<string, string>(), new List<string>(), new List<string>()) { }
 
         public byte[] Serialize() => JsonSerializer.SerializeToUtf8Bytes<Cluster>(this, new JsonSerializerOptions { WriteIndented = true });
         public static Cluster Deserialize(byte[] jsonBytes) => JsonSerializer.Deserialize<Cluster>(jsonBytes);

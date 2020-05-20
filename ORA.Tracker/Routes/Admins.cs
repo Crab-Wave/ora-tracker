@@ -1,97 +1,123 @@
 using System.Net;
-using System.Collections.Generic;
 
-using ORA.Tracker.Models;
+using ORA.Tracker.Http;
 using ORA.Tracker.Services;
-using ORA.Tracker.Services.Databases;
+using ORA.Tracker.Models;
+using ORA.Tracker.Routes.Attributes;
 
 namespace ORA.Tracker.Routes
 {
     public class Admins : Route
     {
-        private static readonly string missingClusterId = new Error("Missing cluster id").ToString();
-        private static readonly string invalidToken = new Error("Invalid token").ToString();
-        private static readonly string invalidClusterId = new Error("Invalid Cluster id").ToString();
-        private static readonly string unauthorizedAction = new Error("Unauthorized action").ToString();
-        private static readonly string missingMemberId = new Error("Missing member id").ToString();
-        private static readonly string notClusterMember = new Error("id does not correspond to a cluster member").ToString();
+        private static readonly byte[] missingClusterId = new Error("Missing cluster id").ToBytes();
+        private static readonly byte[] invalidClusterId = new Error("Invalid Cluster id").ToBytes();
+        private static readonly byte[] unauthorizedAction = new Error("Unauthorized action").ToBytes();
+        private static readonly byte[] notClusterMember = new Error("id does not correspond to a cluster member").ToBytes();
 
-        private static readonly string notClusterAdmin = new Error("id does not correspond to a cluster admin").ToString();
+        private static readonly byte[] notClusterAdmin = new Error("id does not correspond to a cluster admin").ToBytes();
 
-        public Admins()
-            : base() { }
+        public Admins(IServiceCollection services)
+            : base(services) { }
 
-        protected override byte[] get(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams = null)
+        [Authenticate]
+        protected override void get(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
-            string token = Services.Authorization.GetToken(request.Headers);
+            string token = request.Token;
 
-            if (urlParams == null || !urlParams.ContainsKey("id") || urlParams["id"] == "")
-                throw new HttpListenerException(400, missingClusterId);
+            if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
+            {
+                response.BadRequest(missingClusterId);
+                return;
+            }
 
-            if (!TokenManager.Instance.IsValidToken(token))
-                throw new HttpListenerException(400, invalidToken);
+            var c = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (c == null)
+            {
+                response.NotFound(invalidClusterId);
+                return;
+            }
 
-            var c = ClusterDatabase.Get(urlParams["id"])
-                ?? throw new HttpListenerException(404, invalidClusterId);
-            if (!c.members.ContainsKey(TokenManager.Instance.GetIdFromToken(token)))
-                throw new HttpListenerException(403, unauthorizedAction);
+            if (!c.members.ContainsKey(this.services.TokenManager.GetIdFromToken(token)))
+            {
+                response.Forbidden(unauthorizedAction);
+                return;
+            }
 
-            return c.SerializeAdmins();
+            response.Close(c.SerializeAdmins(), true);
         }
 
-        protected override byte[] post(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams)
+        [Authenticate]
+        [RequiredQueryParameters("id")]
+        protected override void post(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
-            string token = Services.Authorization.GetToken(request.Headers);
+            string token = request.Token;
+            string id = request.QueryString["id"];
 
-            string id = request.QueryString.GetValues("id")?[0]
-                ?? throw new HttpListenerException(400, missingMemberId);
+            if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
+            {
+                response.BadRequest(missingClusterId);
+                return;
+            }
 
-            if (urlParams == null || !urlParams.ContainsKey("id") || urlParams["id"] == "")
-                throw new HttpListenerException(400, missingClusterId);
+            this.services.TokenManager.RefreshToken(token);
 
-            if (!TokenManager.Instance.IsValidToken(token))
-                throw new HttpListenerException(400, invalidToken);
+            var c = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (c == null)
+            {
+                response.NotFound(invalidClusterId);
+                return;
+            }
 
-            TokenManager.Instance.RefreshToken(token);
-
-            var c = ClusterDatabase.Get(urlParams["id"])
-                ?? throw new HttpListenerException(404, invalidClusterId);
-            if (TokenManager.Instance.GetIdFromToken(token) != c.owner)
-                throw new HttpListenerException(403, unauthorizedAction);
+            if (this.services.TokenManager.GetIdFromToken(token) != c.owner)
+            {
+                response.Forbidden(unauthorizedAction);
+                return;
+            }
 
             if (!c.members.ContainsKey(id))     // return error if is not member ?
-                throw new HttpListenerException(400, notClusterMember);
+            {
+                response.BadRequest(notClusterMember);
+                return;
+            }
 
             c.admins.Add(id);
-            ClusterDatabase.Put(urlParams["id"], c);
+            this.services.ClusterManager.Put(request.UrlParameters["id"], c);
 
-            return new byte[] { };
+            response.Close();
         }
 
-        protected override byte[] delete(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams)
+        [Authenticate]
+        [RequiredQueryParameters("id")]
+        protected override void delete(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
-            string token = Services.Authorization.GetToken(request.Headers);
+            string token = request.Token;
+            string adminId = request.QueryString["id"];
 
-            string adminId = request.QueryString.GetValues("id")?[0]
-                ?? throw new HttpListenerException(400, missingMemberId);
+            this.services.TokenManager.RefreshToken(token);
 
-            if (!TokenManager.Instance.IsValidToken(token))
-                throw new HttpListenerException(400, invalidToken);
+            var c = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (c == null)
+            {
+                response.NotFound(invalidClusterId);
+                return;
+            }
 
-            TokenManager.Instance.RefreshToken(token);
-
-            var c = ClusterDatabase.Get(urlParams["id"])
-                ?? throw new HttpListenerException(404, invalidClusterId);
-            if (TokenManager.Instance.GetIdFromToken(token) != c.owner)
-                throw new HttpListenerException(403, unauthorizedAction);
+            if (this.services.TokenManager.GetIdFromToken(token) != c.owner)
+            {
+                response.Forbidden(unauthorizedAction);
+                return;
+            }
 
             if (!c.admins.Contains(adminId))
-                throw new HttpListenerException(400, notClusterAdmin);
+            {
+                response.BadRequest(notClusterAdmin);
+                return;
+            }
 
             c.admins.Remove(adminId);
-            ClusterDatabase.Put(urlParams["id"], c);
+            this.services.ClusterManager.Put(request.UrlParameters["id"], c);
 
-            return new byte[] { };
+            response.Close();
         }
     }
 }

@@ -1,18 +1,14 @@
-using System;
 using System.Text;
 using Xunit;
 using FluentAssertions;
 
-using ORA.Tracker.Models;
-
-namespace ORA.Tracker.Tests.Models
+namespace ORA.Tracker.Models.Tests.Unit
 {
     public class NodeTests
     {
         [Theory]
         [InlineData("")]
         [InlineData("127.0.0.1")]
-        [InlineData("8.8.8.8")]
         public void WhenConvertingToString_ShouldMatch(string current_ip)
         {
             var testee = new Node(current_ip);
@@ -28,7 +24,6 @@ namespace ORA.Tracker.Tests.Models
         [Theory]
         [InlineData("")]
         [InlineData("127.0.0.1")]
-        [InlineData("8.8.8.8")]
         public void WhenConvertingToBytes_ShouldMatch(string current_ip)
         {
             var testee = new Node(current_ip);

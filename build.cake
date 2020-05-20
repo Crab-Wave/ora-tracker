@@ -1,8 +1,8 @@
 var target = Argument("target", "Default");
-var configuration = Argument("configuraion", "Release");
+var configuration = Argument("configuration", "Release");
 
 var solution = "./ORA.sln";
-var trackerCsProject = "./ORA.Tracker/ORA.Tracker.csproj";
+var trackerProject = "./ORA.Tracker/ORA.Tracker.csproj";
 var buildDir = Directory("./build");
 
 var buildSettings = new DotNetCoreBuildSettings()
@@ -12,7 +12,18 @@ var buildSettings = new DotNetCoreBuildSettings()
   OutputDirectory = buildDir
 };
 
+// Tests
+var unitTestProject = "./ORA.Tracker.Tests/Unit/ORA.Tracker.Tests.Unit.csproj";
+var integrationTestProject = "./ORA.Tracker.Tests/Integration/ORA.Tracker.Tests.Integration.csproj";
+
+var testSettings = new DotNetCoreTestSettings()
+{
+  Framework = "netcoreapp3.1",
+  Configuration = "Release"
+};
+
 Task("Default")
+  .IsDependentOn("Test")
   .IsDependentOn("Build");
 
 Task("Build")
@@ -23,7 +34,25 @@ Task("Tracker")
     if (!DirectoryExists(buildDir))
       CreateDirectory(buildDir);
 
-    DotNetCoreBuild(trackerCsProject, buildSettings);
+    DotNetCoreBuild(trackerProject, buildSettings);
+  });
+
+Task("Test")
+  .IsDependentOn("Format")
+  .IsDependentOn("Unit")
+  .IsDependentOn("Integration");
+
+Task("Format")
+  .Does(() => { });
+
+Task("Unit")
+  .Does(() => {
+    DotNetCoreTest(unitTestProject, testSettings);
+  });
+
+Task("Integration")
+  .Does(() => {
+    DotNetCoreTest(integrationTestProject, testSettings);
   });
 
 Task("Clean")

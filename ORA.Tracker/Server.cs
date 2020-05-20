@@ -8,13 +8,14 @@ namespace ORA.Tracker
 {
     public class Server
     {
-        private static readonly Logger logger = new Logger();
+        private Logger logger;
         private HttpListener listener;
         private readonly Router router;
         private int port;
 
         public Server(int port)
         {
+            this.logger = new Logger();
             this.port = port;
             this.listener = new HttpListener();
             this.listener.Prefixes.Add($"http://localhost:{port.ToString()}/");
@@ -52,8 +53,7 @@ namespace ORA.Tracker
         {
             this.listener = (HttpListener) result.AsyncState;
 
-            HttpListenerContext context = this.listener.EndGetContext(result);
-            this.router.HandleRequest(context);
+            this.router.HandleRequest(this.listener.EndGetContext(result));
         }
     }
 }

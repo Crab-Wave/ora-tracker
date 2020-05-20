@@ -2,17 +2,13 @@ using System.Text;
 using Xunit;
 using FluentAssertions;
 
-using ORA.Tracker.Models;
-
-namespace ORA.Tracker.Tests.Models
+namespace ORA.Tracker.Models.Tests.Unit
 {
     public class ErrorTests
     {
         [Theory]
         [InlineData("")]
         [InlineData("Not Found")]
-        [InlineData("Method Not Allowed")]
-        [InlineData("Unknown Error")]
         public void WhenConvertingToString_ShouldMatchMessage(string message)
         {
             var testee = new Error(message);
@@ -28,8 +24,6 @@ namespace ORA.Tracker.Tests.Models
         [Theory]
         [InlineData("")]
         [InlineData("Not Found")]
-        [InlineData("Method Not Allowed")]
-        [InlineData("Unknown Error")]
         public void WhenConvertingToBytes_ShouldMatchMessage(string message)
         {
             var testee = new Error(message);

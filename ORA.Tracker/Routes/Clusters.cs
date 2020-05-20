@@ -1,76 +1,81 @@
-using System;
 using System.Net;
-using System.Collections.Generic;
 
-using ORA.Tracker.Models;
-using ORA.Tracker.Services.Databases;
+using ORA.Tracker.Http;
 using ORA.Tracker.Services;
+using ORA.Tracker.Models;
+using ORA.Tracker.Routes.Attributes;
 
 namespace ORA.Tracker.Routes
 {
     public class Clusters : Route
     {
-        private static readonly string missingNameParameter = new Error("Missing name Parameter").ToString();
-        private static readonly string missingUsernameParameter = new Error("Missing username Parameter").ToString();
-        private static readonly string missingClusterId = new Error("Missing Cluster id").ToString();
-        private static readonly string invalidClusterId = new Error("Invalid Cluster id").ToString();
-        private static readonly string invalidToken = new Error("Invalid token").ToString();
-        private static readonly string unauthorizedAction = new Error("Unauthorized action").ToString();
+        private static readonly byte[] invalidClusterId = new Error("Invalid Cluster id").ToBytes();
+        private static readonly byte[] missingClusterId = new Error("Missing Cluster id").ToBytes();
+        private static readonly byte[] unauthorizedAction = new Error("Unauthorized action").ToBytes();
 
-        public Clusters()
-            : base() { }
+        public Clusters(IServiceCollection services)
+            : base(services) { }
 
-        protected override byte[] get(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams)
+        protected override void get(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
-            if (urlParams == null || !urlParams.ContainsKey("id") || urlParams["id"] == "")
-                return ClusterDatabase.GetAll();
+            if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
+            {
+                response.Close(this.services.ClusterManager.GetAll(), true);
+                return;
+            }
 
-            var cluster = ClusterDatabase.Get(urlParams["id"])
-                ?? throw new HttpListenerException(404, invalidClusterId);
+            var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (cluster == null)
+            {
+                response.NotFound(invalidClusterId);
+                return;
+            }
 
-            return cluster.SerializeWithoutMemberName();
+            response.Close(cluster.SerializeWithoutMemberName(), true);
         }
 
-        protected override byte[] post(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams = null)
+        [Authenticate]
+        [RequiredQueryParameters("name", "username")]
+        protected override void post(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
-            string token = Services.Authorization.GetToken(request.Headers);
+            string token = request.Token;
+            this.services.TokenManager.RefreshToken(token);
 
-            string name = request.QueryString.GetValues("name")?[0]
-                ?? throw new HttpListenerException(400, missingNameParameter);
+            var cluster = new Cluster(request.QueryString["name"],
+                this.services.TokenManager.GetIdFromToken(token), request.QueryString["username"]);
+            this.services.ClusterManager.Put(cluster.id.ToString(), cluster);
 
-            string username = request.QueryString.GetValues("username")?[0]
-                ?? throw new HttpListenerException(400, missingUsernameParameter);
-
-            if (!TokenManager.Instance.IsValidToken(token))
-                throw new HttpListenerException(400, invalidToken);
-
-            TokenManager.Instance.RefreshToken(token);
-
-            Cluster cluster = new Cluster(name, TokenManager.Instance.GetIdFromToken(token), username);
-            ClusterDatabase.Put(cluster.id.ToString(), cluster);
-
-            return cluster.SerializeId();
+            response.Close(cluster.SerializeId(), true);
         }
 
-        protected override byte[] delete(HttpListenerRequest request, HttpListenerResponse response, Dictionary<string, string> urlParams)
+        [Authenticate]
+        protected override void delete(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
-            string token = Services.Authorization.GetToken(request.Headers);
+            string token = request.Token;
 
-            if (urlParams == null || !urlParams.ContainsKey("id") || urlParams["id"] == "")
-                throw new HttpListenerException(400, missingClusterId);
+            if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
+            {
+                response.BadRequest(missingClusterId);
+                return;
+            }
 
-            if (!TokenManager.Instance.IsValidToken(token))
-                throw new HttpListenerException(400, invalidToken);
+            this.services.TokenManager.RefreshToken(token);
 
-            TokenManager.Instance.RefreshToken(token);
+            var c = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (c == null)
+            {
+                response.NotFound(invalidClusterId);
+                return;
+            }
 
-            var c = ClusterDatabase.Get(urlParams["id"])
-                ?? throw new HttpListenerException(404, invalidClusterId);
-            if (TokenManager.Instance.GetIdFromToken(token) != c.owner)
-                throw new HttpListenerException(403, unauthorizedAction);
+            if (this.services.TokenManager.GetIdFromToken(token) != c.owner)
+            {
+                response.Forbidden(unauthorizedAction);
+                return;
+            }
 
-            ClusterDatabase.Delete(urlParams["id"]);
-            return new byte[0];
+            this.services.ClusterManager.Delete(request.UrlParameters["id"]);
+            response.Close();
         }
     }
 }

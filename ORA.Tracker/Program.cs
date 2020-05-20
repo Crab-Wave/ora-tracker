@@ -1,6 +1,6 @@
 ﻿using System;
 
-using ORA.Tracker.Services.Databases;
+using ORA.Tracker.Services;
 
 namespace ORA.Tracker
 {
@@ -25,22 +25,20 @@ namespace ORA.Tracker
                 return;
             }
 
-            ClusterDatabase.Init(arguments.ClusterDatabasePath);
-
-            var tracker = new Tracker(arguments.Port);
+            var tracker = new Tracker(arguments);
             tracker.Start();
         }
 
         public static void PrintProgramHelp()
         {
-            Console.WriteLine(@"Usage: ora-tracker [ARGUMENTS]
+            Console.WriteLine($@"Usage: ora-tracker [OPTIONS]
 Run the Tracker program for project ORA.
-By default the tracker is ran on port 3000 and the database directory is './Database'.
+By default the tracker is ran on port {Arguments.DefaultPort} and the database directory is '{Arguments.DefaultClusterDatabasePath}'.
 
-Arguments:
-  -p, --port      Specify the port that the tracker will listen to
-  -d, --database  Specify the tracker database directory path
-  -h, --help      Print this help message");
+Options:
+  -p, --port        Specify the port that the tracker will listen to
+  -d, --database    Specify the tracker database directory path
+  -h, --help        Print this help message");
         }
     }
 }

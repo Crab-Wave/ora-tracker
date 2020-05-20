@@ -1,4 +1,5 @@
 using ORA.Tracker.Routes;
+using ORA.Tracker.Services;
 
 namespace ORA.Tracker
 {
@@ -6,15 +7,16 @@ namespace ORA.Tracker
     {
         private readonly Server server;
 
-        public Tracker(int port)
+        public Tracker(Arguments arguments)
         {
-            this.server = new Server(port);
+            var services = ServiceCollectionBuilder.BuildFromArguments(arguments);
 
-            this.server.RegisterRoute("/", new Root());
-            this.server.RegisterRoute("/clusters/{id}", new Clusters());
-            this.server.RegisterRoute("/auth", new Authentication());
-            this.server.RegisterRoute("/clusters/{id}/members", new Members());
-            this.server.RegisterRoute("/clusters/{id}/admins", new Admins());
+            this.server = new Server(arguments.Port);
+            this.server.RegisterRoute("/", new Root(services));
+            this.server.RegisterRoute("/clusters/{id}", new Clusters(services));
+            this.server.RegisterRoute("/auth", new Authentication(services));
+            this.server.RegisterRoute("/clusters/{id}/members", new Members(services));
+            this.server.RegisterRoute("/clusters/{id}/admins", new Admins(services));
         }
 
         public void Start() => this.server.Listen();
