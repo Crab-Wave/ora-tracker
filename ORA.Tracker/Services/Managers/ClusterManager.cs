@@ -36,12 +36,12 @@ namespace ORA.Tracker.Services.Managers
             return this.database.GetAll();
         }
 
-        public void Put(string id, Cluster cluster)
+        public void Put(Cluster cluster)
         {
             if (cluster == null)
                 throw new ArgumentNullException("cluster", "Unable to put null cluster.");
 
-            this.database.Put(Encoding.UTF8.GetBytes(id), cluster.Serialize());
+            this.database.Put(Encoding.UTF8.GetBytes(cluster.id.ToString()), cluster.Serialize());
         }
 
         public void Delete(string id)

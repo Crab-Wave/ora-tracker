@@ -34,7 +34,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         public async void Get_WhenExistingCluster_ShouldWithMatchingCluster()
         {
             var c = new Cluster("test", Guid.NewGuid().ToString(), "ownerName");
-            services.ClusterManager.Put(c.id.ToString(), c);
+            services.ClusterManager.Put(c);
 
             var response = await router.GetResponseOf(HttpMethod.Get, $"/clusters/{c.id.ToString()}");
 
@@ -124,7 +124,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string unauthorizedAction = new Error("Unauthorized action").ToString();
 
             Cluster c = new Cluster("test", "notsameid", "ownerName");
-            services.ClusterManager.Put(c.id.ToString(), c);
+            services.ClusterManager.Put(c);
 
             var request = new MockupRouterRequest(HttpMethod.Delete, $"/clusters/{c.id.ToString()}")
             {
@@ -140,7 +140,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         public async void Delete_WhenExistingClusterAndAuthorized_ShouldRespondWithEmptyBody()
         {
             Cluster c = new Cluster("test", services.TokenManager.GetIdFromToken(token), "ownerName");
-            services.ClusterManager.Put(c.id.ToString(), c);
+            services.ClusterManager.Put(c);
 
             var request = new MockupRouterRequest(HttpMethod.Delete, $"/clusters/{c.id.ToString()}")
             {
