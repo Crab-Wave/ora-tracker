@@ -28,20 +28,20 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            var c = this.services.ClusterManager.Get(request.UrlParameters["id"]);
-            if (c == null)
+            var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (cluster == null)
             {
                 response.NotFound(invalidClusterId);
                 return;
             }
 
-            if (!c.members.ContainsKey(this.services.TokenManager.GetIdFromToken(token)))
+            if (!cluster.members.ContainsKey(this.services.TokenManager.GetIdFromToken(token)))
             {
                 response.Forbidden(unauthorizedAction);
                 return;
             }
 
-            response.Close(c.SerializeMembers(), true);
+            response.Close(cluster.SerializeMembers(), true);
         }
 
         [Authenticate]
@@ -54,22 +54,22 @@ namespace ORA.Tracker.Routes
 
             this.services.TokenManager.RefreshToken(token);
 
-            var c = this.services.ClusterManager.Get(request.UrlParameters["id"]);
-            if (c == null)
+            var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (cluster == null)
             {
                 response.NotFound(invalidClusterId);
                 return;
             }
 
             string userId = this.services.TokenManager.GetIdFromToken(token);
-            if (userId != c.owner && !c.admins.Contains(userId))
+            if (userId != cluster.owner && !cluster.admins.Contains(userId))
             {
                 response.Forbidden(unauthorizedAction);
                 return;
             }
 
-            c.members.Add(id, name);
-            this.services.ClusterManager.Put(request.UrlParameters["id"], c);
+            cluster.members.Add(id, name);
+            this.services.ClusterManager.Put(cluster);
 
             response.Close();
         }
@@ -83,22 +83,22 @@ namespace ORA.Tracker.Routes
 
             this.services.TokenManager.RefreshToken(token);
 
-            var c = this.services.ClusterManager.Get(request.UrlParameters["id"]);
-            if (c == null)
+            var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (cluster == null)
             {
                 response.NotFound(invalidClusterId);
                 return;
             }
 
             string userId = this.services.TokenManager.GetIdFromToken(token);
-            if (userId != c.owner && !c.admins.Contains(userId))
+            if (userId != cluster.owner && !cluster.admins.Contains(userId))
             {
                 response.Forbidden(unauthorizedAction);
                 return;
             }
 
-            c.members.Remove(id);
-            this.services.ClusterManager.Put(request.UrlParameters["id"], c);
+            cluster.members.Remove(id);
+            this.services.ClusterManager.Put(cluster);
 
             response.Close();
         }

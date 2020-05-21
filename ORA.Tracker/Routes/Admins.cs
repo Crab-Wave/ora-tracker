@@ -30,20 +30,20 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            var c = this.services.ClusterManager.Get(request.UrlParameters["id"]);
-            if (c == null)
+            var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (cluster == null)
             {
                 response.NotFound(invalidClusterId);
                 return;
             }
 
-            if (!c.members.ContainsKey(this.services.TokenManager.GetIdFromToken(token)))
+            if (!cluster.members.ContainsKey(this.services.TokenManager.GetIdFromToken(token)))
             {
                 response.Forbidden(unauthorizedAction);
                 return;
             }
 
-            response.Close(c.SerializeAdmins(), true);
+            response.Close(cluster.SerializeAdmins(), true);
         }
 
         [Authenticate]
@@ -61,27 +61,27 @@ namespace ORA.Tracker.Routes
 
             this.services.TokenManager.RefreshToken(token);
 
-            var c = this.services.ClusterManager.Get(request.UrlParameters["id"]);
-            if (c == null)
+            var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (cluster == null)
             {
                 response.NotFound(invalidClusterId);
                 return;
             }
 
-            if (this.services.TokenManager.GetIdFromToken(token) != c.owner)
+            if (this.services.TokenManager.GetIdFromToken(token) != cluster.owner)
             {
                 response.Forbidden(unauthorizedAction);
                 return;
             }
 
-            if (!c.members.ContainsKey(id))     // return error if is not member ?
+            if (!cluster.members.ContainsKey(id))     // return error if is not member ?
             {
                 response.BadRequest(notClusterMember);
                 return;
             }
 
-            c.admins.Add(id);
-            this.services.ClusterManager.Put(request.UrlParameters["id"], c);
+            cluster.admins.Add(id);
+            this.services.ClusterManager.Put(cluster);
 
             response.Close();
         }
@@ -95,27 +95,27 @@ namespace ORA.Tracker.Routes
 
             this.services.TokenManager.RefreshToken(token);
 
-            var c = this.services.ClusterManager.Get(request.UrlParameters["id"]);
-            if (c == null)
+            var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (cluster == null)
             {
                 response.NotFound(invalidClusterId);
                 return;
             }
 
-            if (this.services.TokenManager.GetIdFromToken(token) != c.owner)
+            if (this.services.TokenManager.GetIdFromToken(token) != cluster.owner)
             {
                 response.Forbidden(unauthorizedAction);
                 return;
             }
 
-            if (!c.admins.Contains(adminId))
+            if (!cluster.admins.Contains(adminId))
             {
                 response.BadRequest(notClusterAdmin);
                 return;
             }
 
-            c.admins.Remove(adminId);
-            this.services.ClusterManager.Put(request.UrlParameters["id"], c);
+            cluster.admins.Remove(adminId);
+            this.services.ClusterManager.Put(cluster);
 
             response.Close();
         }

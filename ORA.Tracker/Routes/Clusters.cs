@@ -43,7 +43,7 @@ namespace ORA.Tracker.Routes
 
             var cluster = new Cluster(request.QueryString["name"],
                 this.services.TokenManager.GetIdFromToken(token), request.QueryString["username"]);
-            this.services.ClusterManager.Put(cluster.id.ToString(), cluster);
+            this.services.ClusterManager.Put(cluster);
 
             response.Close(cluster.SerializeId(), true);
         }
@@ -61,14 +61,14 @@ namespace ORA.Tracker.Routes
 
             this.services.TokenManager.RefreshToken(token);
 
-            var c = this.services.ClusterManager.Get(request.UrlParameters["id"]);
-            if (c == null)
+            var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (cluster == null)
             {
                 response.NotFound(invalidClusterId);
                 return;
             }
 
-            if (this.services.TokenManager.GetIdFromToken(token) != c.owner)
+            if (this.services.TokenManager.GetIdFromToken(token) != cluster.owner)
             {
                 response.Forbidden(unauthorizedAction);
                 return;
