@@ -12,7 +12,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         private static readonly MockupRouter router = new MockupRouter("/", new Root(null));
 
         [Fact]
-        public async void WhenGet_ShouldReturn_WelcomeMessage()
+        public async void Get_ShouldRespondWithWelcomeMessage()
         {
             var response = await router.GetResponseOf(HttpMethod.Get, "/");
 

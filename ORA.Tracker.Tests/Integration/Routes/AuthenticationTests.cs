@@ -16,7 +16,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         private static readonly MockupRouter router = new MockupRouter("/auth", new Authentication(new ServiceCollection(null)));
 
         [Fact]
-        public async void WhenPostWithoutBody_ShouldRespondWithBadRequest()
+        public async void Post_WhenEmptyBody_ShouldRespondWithBadRequest()
         {
             string missingKey = new Error("Missing key").ToString();
 
@@ -27,7 +27,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void WhenPostWithTooSmallKey_ShouldRespondWithBadRequest()
+        public async void Post_WhenTooSmallKey_ShouldRespondWithBadRequest()
         {
             string invalidKeyStructure = new Error("Invalid key structure").ToString();
             var key = Convert.ToBase64String(new byte[15] { 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 114, 233, 1, 1 });
@@ -43,7 +43,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void WhenPostWithInvalidKey_ShouldRespondWithBadRequest()
+        public async void Post_WhenInvalidKey_ShouldRespondWithBadRequest()
         {
             string invalidKeyStructure = new Error("Invalid key structure").ToString();
 
@@ -58,7 +58,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void WhenPostWithValidKey_ShouldRespondWithToken()
+        public async void Post_WhenValidKey_ShouldRespondWithToken()
         {
             var csp = new RSACryptoServiceProvider();
             byte[] publicKey = csp.ExportRSAPublicKey();

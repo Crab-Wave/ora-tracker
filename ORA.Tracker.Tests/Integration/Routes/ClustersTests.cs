@@ -31,7 +31,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void WhenGetExistingCluster_ShouldWithMatchingCluster()
+        public async void Get_WhenExistingCluster_ShouldWithMatchingCluster()
         {
             var c = new Cluster("test", Guid.NewGuid().ToString(), "ownerName");
             services.ClusterManager.Put(c.id.ToString(), c);
@@ -43,7 +43,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void WhenGetInexistingCluster_ShouldRespondWithNotFound()
+        public async void Get_WhenInexistingCluster_ShouldRespondWithNotFound()
         {
             string inexistingId = "test";
             string invalidClusterId = new Error("Invalid Cluster id").ToString();
@@ -55,7 +55,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void WhenGetWithoutParameter_ShouldRespondWithAllClusters()
+        public async void Get_WhenNoIdParameter_ShouldRespondWithAllClusters()
         {
             var response = await router.GetResponseOf(HttpMethod.Get, "/clusters");
 
@@ -65,7 +65,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void WhenPostWithoutCredentials_ShouldRespondWithBadRequest()
+        public async void Post_WhenMissingCredentials_ShouldRespondWithBadRequest()
         {
             string missingCredentials = new Error("Missing credentials").ToString();
 
@@ -76,7 +76,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void WhenPost_ShouldCreateClusterAndRespondWithClusterId()
+        public async void Post_WhenValidCredentials_ShouldCreateClusterAndRespondWithClusterId()
         {
             string clusterName = "test";
 
@@ -93,7 +93,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void WhenPostWithoutNameParameter_ShouldRespondWithBadRequest()
+        public async void Post_WhenMissingNameParameter_ShouldRespondWithBadRequest()
         {
             string missingNameParameter = new Error("Missing query parameter name").ToString();
 
@@ -108,7 +108,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void WhenDeleteWithoutCredentials_ShouldRespondWithBadRequest()
+        public async void Delete_WhenWhenMissingCredentials_ShouldRespondWithBadRequest()
         {
             string missingCredentials = new Error("Missing credentials").ToString();
 
@@ -119,7 +119,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void WhenDeleteAndUnauthorized_ShouldRespondWithForbidden()
+        public async void Delete_WhenExistingClusterAndUnauthorized_ShouldRespondWithForbidden()
         {
             string unauthorizedAction = new Error("Unauthorized action").ToString();
 
@@ -137,7 +137,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void WhenDeleteExistingClusterAndAuthorized_ShouldRespondWithEmptyBody()
+        public async void Delete_WhenExistingClusterAndAuthorized_ShouldRespondWithEmptyBody()
         {
             Cluster c = new Cluster("test", services.TokenManager.GetIdFromToken(token), "ownerName");
             services.ClusterManager.Put(c.id.ToString(), c);
@@ -153,7 +153,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void WhenDeleteInexistingCluster_ShouldRespondWithNotFound()
+        public async void Delete_WhenInexistingCluster_ShouldRespondWithNotFound()
         {
             string inexistingId = "test";
             string invalidClusterId = new Error("Invalid Cluster id").ToString();
@@ -169,7 +169,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void WhenDeleteWithoutClusterId_ShouldRespondWithBadRequest()
+        public async void Delete_WhenMissingClusterId_ShouldRespondWithBadRequest()
         {
             string missingClusterId = new Error("Missing Cluster id").ToString();
 
