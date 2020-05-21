@@ -1,7 +1,6 @@
 using System;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using Xunit;
 using FluentAssertions;
@@ -18,10 +17,19 @@ namespace ORA.Tracker.Routes.Attributes.Tests.Integration
         private static readonly ServiceCollection services;
         private static readonly MockupRouter router;
 
+        private string token;
+
         static AuthenticateTests()
         {
             services = new ServiceCollection(null);
             router = new MockupRouter("/", new MockupRoute(services));
+        }
+
+        public AuthenticateTests()
+        {
+            this.token = services.TokenManager.NewToken();
+            if (!services.TokenManager.IsTokenRegistered(token))
+                services.TokenManager.RegisterToken(Guid.NewGuid().ToString(), token);
         }
 
         [Fact]
@@ -39,14 +47,12 @@ namespace ORA.Tracker.Routes.Attributes.Tests.Integration
         public async void Request_WhenInvalidCredentialsType_ShouldRespondWithBadRequest()
         {
             string invalidCredentialsType = "NotBearer";
-            string token = services.TokenManager.NewToken();
-            services.TokenManager.RegisterToken(Guid.NewGuid().ToString(), token);
             string expectedResponseContent = new Error("Invalid credentials type").ToString();
 
             var request = new MockupRouterRequest(HttpMethod.Get, "/")
             {
                 CredentialsType = invalidCredentialsType,
-                Credentials = token
+                Credentials = this.token
             };
             var response = await router.GetResponseOf(request);
 
@@ -73,13 +79,11 @@ namespace ORA.Tracker.Routes.Attributes.Tests.Integration
         [Fact]
         public async void Request_WhenValidToken_ShouldRespondWithOk()
         {
-            string token = services.TokenManager.NewToken();
-            services.TokenManager.RegisterToken(Guid.NewGuid().ToString(), token);
             string expectedResponseContent = "You are authorized to acces this.";
 
             var request = new MockupRouterRequest(HttpMethod.Get, "/")
             {
-                Credentials = token
+                Credentials = this.token
             };
             var response = await router.GetResponseOf(request);
 
