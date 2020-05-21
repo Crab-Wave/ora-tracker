@@ -93,6 +93,12 @@ namespace ORA.Tracker.Routes
             string token = request.Token;
             string adminId = request.QueryString["id"];
 
+            if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
+            {
+                response.BadRequest(missingClusterId);
+                return;
+            }
+
             this.services.TokenManager.RefreshToken(token);
 
             var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);

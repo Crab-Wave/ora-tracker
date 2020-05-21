@@ -52,6 +52,12 @@ namespace ORA.Tracker.Routes
             string id = request.QueryString["id"];
             string name = request.QueryString["name"];
 
+            if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
+            {
+                response.BadRequest(missingClusterId);
+                return;
+            }
+
             this.services.TokenManager.RefreshToken(token);
 
             var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
@@ -80,6 +86,12 @@ namespace ORA.Tracker.Routes
         {
             string token = request.Token;
             string id = request.QueryString["id"];
+
+            if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
+            {
+                response.BadRequest(missingClusterId);
+                return;
+            }
 
             this.services.TokenManager.RefreshToken(token);
 
