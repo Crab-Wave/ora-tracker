@@ -2,7 +2,6 @@ using System;
 using System.Net.Http;
 using Xunit;
 using FluentAssertions;
-using Xunit.Abstractions;
 
 using ORA.Tracker.Models;
 using ORA.Tracker.Services;
@@ -45,7 +44,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         [Fact]
         public async void Get_WhenMissingClusterId_ShouldRespondWithBadRequest()
         {
-            string expectedResponseContent = new Error("Missing cluster id").ToString();
+            string expectedResponseContent = new Error("Missing url parameter id").ToString();
             var request = new MockupRouterRequest(HttpMethod.Get, "/clusters//admins")
             {
                 Credentials = this.token
@@ -114,6 +113,20 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string expectedResponseContent = new Error("Missing credentials").ToString();
 
             var response = await router.GetResponseOf(HttpMethod.Post, "/clusters/id/admins?id=id");
+
+            response.StatusCode.Should().Be(400);
+            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
+        }
+
+        [Fact]
+        public async void Post_WhenMissingClusterId_ShouldRespondWithBadRequest()
+        {
+            string expectedResponseContent = new Error("Missing url parameter id").ToString();
+            var request = new MockupRouterRequest(HttpMethod.Post, "/clusters//admins")
+            {
+                Credentials = this.token
+            };
+            var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(400);
             response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
@@ -213,6 +226,20 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string expectedResponseContent = new Error("Missing credentials").ToString();
 
             var response = await router.GetResponseOf(HttpMethod.Delete, "/clusters/id/admins?id=id");
+
+            response.StatusCode.Should().Be(400);
+            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
+        }
+
+        [Fact]
+        public async void Delete_WhenMissingClusterId_ShouldRespondWithBadRequest()
+        {
+            string expectedResponseContent = new Error("Missing url parameter id").ToString();
+            var request = new MockupRouterRequest(HttpMethod.Delete, "/clusters//admins")
+            {
+                Credentials = this.token
+            };
+            var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(400);
             response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);

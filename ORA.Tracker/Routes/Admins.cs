@@ -20,15 +20,11 @@ namespace ORA.Tracker.Routes
             : base(services) { }
 
         [Authenticate]
+        [RequiredUrlParameters("id")]
         protected override void get(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
-
-            if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
-            {
-                response.BadRequest(missingClusterId);
-                return;
-            }
+            this.services.TokenManager.RefreshToken(token);
 
             var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
             if (cluster == null)
@@ -37,7 +33,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            if (!cluster.members.ContainsKey(this.services.TokenManager.GetIdFromToken(token)))
+            if (!cluster.HasMember(this.services.TokenManager.GetIdFromToken(token)))
             {
                 response.Forbidden(unauthorizedAction);
                 return;
@@ -47,18 +43,12 @@ namespace ORA.Tracker.Routes
         }
 
         [Authenticate]
+        [RequiredUrlParameters("id")]
         [RequiredQueryParameters("id")]
         protected override void post(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
-            string id = request.QueryString["id"];
-
-            if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
-            {
-                response.BadRequest(missingClusterId);
-                return;
-            }
-
+            string memberId = request.QueryString["id"];
             this.services.TokenManager.RefreshToken(token);
 
             var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
@@ -74,31 +64,25 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            if (!cluster.members.ContainsKey(id))     // return error if is not member ?
+            if (!cluster.HasMember(memberId))     // return error if is not member ?
             {
                 response.BadRequest(notClusterMember);
                 return;
             }
 
-            cluster.admins.Add(id);
+            cluster.admins.Add(memberId);
             this.services.ClusterManager.Put(cluster);
 
             response.Close();
         }
 
         [Authenticate]
+        [RequiredUrlParameters("id")]
         [RequiredQueryParameters("id")]
         protected override void delete(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
             string adminId = request.QueryString["id"];
-
-            if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
-            {
-                response.BadRequest(missingClusterId);
-                return;
-            }
-
             this.services.TokenManager.RefreshToken(token);
 
             var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
@@ -108,13 +92,13 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            if (this.services.TokenManager.GetIdFromToken(token) != cluster.owner)
+            if (!cluster.IsOwnedBy(this.services.TokenManager.GetIdFromToken(token)))
             {
                 response.Forbidden(unauthorizedAction);
                 return;
             }
 
-            if (!cluster.admins.Contains(adminId))
+            if (!cluster.HasAdmin(adminId))
             {
                 response.BadRequest(notClusterAdmin);
                 return;

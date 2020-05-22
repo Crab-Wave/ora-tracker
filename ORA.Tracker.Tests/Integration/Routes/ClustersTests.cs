@@ -46,12 +46,12 @@ namespace ORA.Tracker.Routes.Tests.Integration
         public async void Get_WhenInexistingCluster_ShouldRespondWithNotFound()
         {
             string inexistingId = "test";
-            string invalidClusterId = new Error("Invalid Cluster id").ToString();
+            string expectedResponseContent = new Error("Invalid Cluster id").ToString();
 
             var response = await router.GetResponseOf(HttpMethod.Get, $"/clusters/{inexistingId}");
 
             response.StatusCode.Should().Be(404);
-            response.Content.ReadAsStringAsync().Result.Should().Be(invalidClusterId);
+            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
         }
 
         [Fact]
@@ -67,12 +67,12 @@ namespace ORA.Tracker.Routes.Tests.Integration
         [Fact]
         public async void Post_WhenMissingCredentials_ShouldRespondWithBadRequest()
         {
-            string missingCredentials = new Error("Missing credentials").ToString();
+            string expectedResponseContent = new Error("Missing credentials").ToString();
 
             var response = await router.GetResponseOf(HttpMethod.Post, "/clusters?name=name");
 
             response.StatusCode.Should().Be(400);
-            response.Content.ReadAsStringAsync().Result.Should().Be(missingCredentials);
+            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
         }
 
         [Fact]
@@ -95,7 +95,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         [Fact]
         public async void Post_WhenMissingNameParameter_ShouldRespondWithBadRequest()
         {
-            string missingNameParameter = new Error("Missing query parameter name").ToString();
+            string expectedResponseContent = new Error("Missing query parameter name").ToString();
 
             var request = new MockupRouterRequest(HttpMethod.Post, "/clusters")
             {
@@ -104,24 +104,24 @@ namespace ORA.Tracker.Routes.Tests.Integration
             var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(400);
-            response.Content.ReadAsStringAsync().Result.Should().Be(missingNameParameter);
+            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
         }
 
         [Fact]
         public async void Delete_WhenWhenMissingCredentials_ShouldRespondWithBadRequest()
         {
-            string missingCredentials = new Error("Missing credentials").ToString();
+            string expectedResponseContent = new Error("Missing credentials").ToString();
 
             var response = await router.GetResponseOf(HttpMethod.Delete, "/clusters/id");
 
             response.StatusCode.Should().Be(400);
-            response.Content.ReadAsStringAsync().Result.Should().Be(missingCredentials);
+            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
         }
 
         [Fact]
         public async void Delete_WhenExistingClusterAndUnauthorized_ShouldRespondWithForbidden()
         {
-            string unauthorizedAction = new Error("Unauthorized action").ToString();
+            string expectedResponseContent = new Error("Unauthorized action").ToString();
 
             Cluster c = new Cluster("test", "notsameid", "ownerName");
             services.ClusterManager.Put(c);
@@ -133,7 +133,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
             var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(403);
-            response.Content.ReadAsStringAsync().Result.Should().Be(unauthorizedAction);
+            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
         }
 
         [Fact]
@@ -156,7 +156,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         public async void Delete_WhenInexistingCluster_ShouldRespondWithNotFound()
         {
             string inexistingId = "test";
-            string invalidClusterId = new Error("Invalid Cluster id").ToString();
+            string expectedResponseContent = new Error("Invalid Cluster id").ToString();
 
             var request = new MockupRouterRequest(HttpMethod.Delete, $"/clusters/{inexistingId}")
             {
@@ -165,13 +165,13 @@ namespace ORA.Tracker.Routes.Tests.Integration
             var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(404);
-            response.Content.ReadAsStringAsync().Result.Should().Be(invalidClusterId);
+            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
         }
 
         [Fact]
         public async void Delete_WhenMissingClusterId_ShouldRespondWithBadRequest()
         {
-            string missingClusterId = new Error("Missing Cluster id").ToString();
+            string expectedResponseContent = new Error("Missing url parameter id").ToString();
 
             var request = new MockupRouterRequest(HttpMethod.Delete, "/clusters")
             {
@@ -180,7 +180,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
             var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(400);
-            response.Content.ReadAsStringAsync().Result.Should().Be(missingClusterId);
+            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
         }
 
         [Fact]

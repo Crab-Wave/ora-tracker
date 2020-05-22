@@ -49,15 +49,10 @@ namespace ORA.Tracker.Routes
         }
 
         [Authenticate]
+        [RequiredUrlParameters("id")]
         protected override void delete(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
-
-            if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
-            {
-                response.BadRequest(missingClusterId);
-                return;
-            }
 
             this.services.TokenManager.RefreshToken(token);
 
@@ -68,7 +63,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            if (this.services.TokenManager.GetIdFromToken(token) != cluster.owner)
+            if (!cluster.IsOwnedBy(this.services.TokenManager.GetIdFromToken(token)))
             {
                 response.Forbidden(unauthorizedAction);
                 return;
