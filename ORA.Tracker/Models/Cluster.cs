@@ -12,11 +12,11 @@ namespace ORA.Tracker.Models
         public string owner { get; set; }
         public Dictionary<string, string> members { get; set; } // key: id, value: name
         public List<string> admins { get; set; }
-        public List<string> files { get; set; }
+        public List<File> files { get; set; }
 
         public Cluster() { }
 
-        public Cluster(Guid id, string name, string owner, string ownerName, Dictionary<string, string> members, List<string> admins, List<string> files)
+        public Cluster(Guid id, string name, string owner, string ownerName, Dictionary<string, string> members, List<string> admins, List<File> files)
         {
             this.id = id;
             this.name = name;
@@ -30,7 +30,7 @@ namespace ORA.Tracker.Models
         }
 
         public Cluster(string name, string owner, string ownerName)
-            : this(Guid.NewGuid(), name, owner, ownerName, new Dictionary<string, string>(), new List<string>(), new List<string>()) { }
+            : this(Guid.NewGuid(), name, owner, ownerName, new Dictionary<string, string>(), new List<string>(), new List<File>()) { }
 
         public bool IsOwnedBy(string id)
             => this.owner == id;
@@ -41,18 +41,24 @@ namespace ORA.Tracker.Models
         public bool HasMember(string id)
             => this.members.ContainsKey(id);
 
+        public bool HasFile(string id)
+            => this.files.Exists(f => f.hash == id);
+
+        public void AddFile(File file)
+        {
+
+        }
+
         public byte[] Serialize() => JsonSerializer.SerializeToUtf8Bytes<Cluster>(this, new JsonSerializerOptions { WriteIndented = true });
         public static Cluster Deserialize(byte[] jsonBytes) => JsonSerializer.Deserialize<Cluster>(jsonBytes);
 
-        public byte[] SerializeWithoutMemberName() =>
-            JsonSerializer.SerializeToUtf8Bytes<ClusterWithoutMemberName>(new ClusterWithoutMemberName(this), new JsonSerializerOptions { WriteIndented = true });
         public byte[] SerializePublicInformation() =>
-            JsonSerializer.SerializeToUtf8Bytes<ClusterWithoutMemberName>(new ClusterWithoutMemberName(this), new JsonSerializerOptions { WriteIndented = true });
+            JsonSerializer.SerializeToUtf8Bytes<PublicCluster>(new PublicCluster(this), new JsonSerializerOptions { WriteIndented = true });
         public byte[] SerializeId() => JsonSerializer.SerializeToUtf8Bytes<Id>(new Id(this.id), new JsonSerializerOptions { WriteIndented = true });
         public byte[] SerializeMembers() => JsonSerializer.SerializeToUtf8Bytes<Members>(new Members(this.members), new JsonSerializerOptions { WriteIndented = true });
         public byte[] SerializeAdmins() => JsonSerializer.SerializeToUtf8Bytes<List<string>>(this.admins, new JsonSerializerOptions { WriteIndented = true });
 
-        public struct ClusterWithoutMemberName
+        public struct PublicCluster
         {
             public Guid id { get; set; }
             public string name { get; set; }
@@ -61,14 +67,14 @@ namespace ORA.Tracker.Models
             public List<string> admins { get; set; }
             public List<string> files { get; set; }
 
-            public ClusterWithoutMemberName(Cluster c)
+            public PublicCluster(Cluster c)
             {
                 this.id = c.id;
                 this.name = c.name;
                 this.owner = c.owner;
                 this.members = c.members.Keys.ToList();
                 this.admins = c.admins;
-                this.files = c.files;
+                this.files = c.files.Select(f => f.hash).ToList();
             }
         }
 

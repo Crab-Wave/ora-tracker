@@ -39,7 +39,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
             var response = await router.GetResponseOf(HttpMethod.Get, $"/clusters/{c.id.ToString()}");
 
             response.StatusCode.Should().Be(200);
-            response.Content.ReadAsByteArrayAsync().Result.Should().BeEquivalentTo(c.SerializeWithoutMemberName());
+            response.Content.ReadAsByteArrayAsync().Result.Should().BeEquivalentTo(c.SerializePublicInformation());
         }
 
         [Fact]

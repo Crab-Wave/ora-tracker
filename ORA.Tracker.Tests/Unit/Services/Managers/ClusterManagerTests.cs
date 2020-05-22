@@ -47,7 +47,7 @@ namespace ORA.Tracker.Services.Managers.Tests.Unit
 
             testee.Put(cluster1);
             var cluster2 = cluster1;
-            cluster2.files.Add("newfile.txt");
+            cluster2.files.Add(new File());
             testee.Put(cluster2);
 
             testee.Get(cluster1.id.ToString())

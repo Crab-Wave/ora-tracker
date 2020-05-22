@@ -41,7 +41,7 @@ namespace ORA.Tracker.Services.Databases.Tests.Integration
 
             testee.Put(key, cluster1.Serialize());
             var cluster2 = cluster1;
-            cluster2.files.Add("newfile.txt");
+            cluster2.files.Add(new File("1234", "path", 1400));
             testee.Put(key, cluster2.Serialize());
 
             Cluster.Deserialize(testee.Get(key))

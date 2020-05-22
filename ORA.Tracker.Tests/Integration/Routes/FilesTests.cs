@@ -26,19 +26,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             string notFound = new Error("Not Found").ToString();
 
-            var response = await router.GetResponseOf(HttpMethod.Get, "/");
-            response.StatusCode.Should().Be(404);
-            response.Content.ReadAsStringAsync().Result.Should().Be(notFound);
-
-            response = await router.GetResponseOf(HttpMethod.Post, "/");
-            response.StatusCode.Should().Be(404);
-            response.Content.ReadAsStringAsync().Result.Should().Be(notFound);
-
-            response = await router.GetResponseOf(HttpMethod.Put, "/");
-            response.StatusCode.Should().Be(404);
-            response.Content.ReadAsStringAsync().Result.Should().Be(notFound);
-
-            response = await router.GetResponseOf(HttpMethod.Delete, "/");
+            var response = await router.GetResponseOf(HttpMethod.Put, "/");
             response.StatusCode.Should().Be(404);
             response.Content.ReadAsStringAsync().Result.Should().Be(notFound);
 

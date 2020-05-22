@@ -31,7 +31,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            response.Close(cluster.SerializeWithoutMemberName(), true);
+            response.Close(cluster.SerializePublicInformation(), true);
         }
 
         [Authenticate]
