@@ -31,12 +31,23 @@ namespace ORA.Tracker.Services.Managers
 
             this.tokens.Add(id, token);
             this.ids.Add(token, id);
-            this.tokenExpirations.Add(token, DateTime.UtcNow.AddMinutes(tokenLifetimeInMinutes).Ticks);
+            this.tokenExpirations.Add(token, this.GetExpirationDateFromNow());
         }
 
         public void RefreshToken(string token)
         {
-            this.tokenExpirations[token] = DateTime.UtcNow.AddMinutes(tokenLifetimeInMinutes).Ticks;
+            this.tokenExpirations[token] = this.GetExpirationDateFromNow();
+        }
+
+        public void UpdateToken(string id, string token)
+        {
+            this.ids.Remove(token);
+            this.tokenExpirations.Remove(token);
+
+            string newToken = this.NewToken();
+            this.tokens[id] = newToken;
+            this.ids[newToken] = id;
+            this.tokenExpirations[newToken] = this.GetExpirationDateFromNow();
         }
 
         public string GetTokenFromId(string id) => this.tokens[id];
@@ -47,6 +58,9 @@ namespace ORA.Tracker.Services.Managers
         public bool IsValidToken(string token) => this.IsTokenRegistered(token) && !this.IsTokenExpired(token);
         public bool IsTokenRegistered(string token) => this.ids.ContainsKey(token);
         public bool IsTokenExpired(string token) => DateTime.UtcNow.Ticks > this.tokenExpirations[token];
+
+        private long GetExpirationDateFromNow()
+            => DateTime.UtcNow.AddMinutes(tokenLifetimeInMinutes).Ticks;
 
         private static string generateToken(int size)
         {
