@@ -44,9 +44,22 @@ namespace ORA.Tracker.Models
         public bool HasFile(string id)
             => this.files.Exists(f => f.hash == id);
 
+        public File GetFile(string id)
+            => this.files.Find(f => f.hash == id);
+
         public void AddFile(File file)
         {
+            if (!this.HasFile(file.hash))
+                this.files.Add(file);
+        }
 
+        public void RemoveFile(string id)
+        {
+            for (int i = 0; i < this.files.Count; i++)
+            {
+                if (this.files[i].hash == id)
+                    this.files.RemoveAt(i);
+            }
         }
 
         public byte[] Serialize() => JsonSerializer.SerializeToUtf8Bytes<Cluster>(this, new JsonSerializerOptions { WriteIndented = true });
