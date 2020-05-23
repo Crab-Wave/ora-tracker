@@ -11,19 +11,18 @@ namespace ORA.Tracker.Routes
         private static readonly byte[] missingClusterId = new Error("Missing cluster id").ToBytes();
         private static readonly byte[] invalidClusterId = new Error("Invalid Cluster id").ToBytes();
         private static readonly byte[] unauthorizedAction = new Error("Unauthorized action").ToBytes();
-        private static readonly byte[] notClusterFile = new Error("id does not correspond to a cluster file").ToBytes();
-        private static readonly byte[] invalidFileId = new Error("id does not correspond to a file in the cluster").ToBytes();
+        private static readonly byte[] notClusterFile = new Error("hash does not correspond to a cluster file").ToBytes();
 
         public Files(IServiceCollection services)
             : base(services) { }
 
         [Authenticate]
         [RequiredUrlParameters("id")]
-        [RequiredQueryParameters("id")]
+        [RequiredQueryParameters("hash")]
         protected override void get(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
-            string fileId = request.QueryString["id"];
+            string hash = request.QueryString["hash"];
             this.services.TokenManager.RefreshToken(token);
 
             var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
@@ -39,18 +38,13 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            if (!cluster.HasFile(fileId))
+            if (!cluster.HasFile(hash))
             {
                 response.NotFound(notClusterFile);
                 return;
             }
 
-            var file = cluster.GetFile(fileId);
-            if (file == null)
-            {
-                response.NotFound(invalidFileId);
-                return;
-            }
+            var file = cluster.GetFile(hash);
 
             response.Close(file.Serialize(), true);
         }
@@ -86,11 +80,11 @@ namespace ORA.Tracker.Routes
 
         [Authenticate]
         [RequiredUrlParameters("id")]
-        [RequiredQueryParameters("id")]
+        [RequiredQueryParameters("hash")]
         protected override void delete(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
-            string fileId = request.QueryString["id"];
+            string hash = request.QueryString["hash"];
             this.services.TokenManager.RefreshToken(token);
 
             var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
@@ -107,7 +101,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            cluster.RemoveFile(fileId);
+            cluster.RemoveFile(hash);
             this.services.ClusterManager.Put(cluster);
 
             response.Close();
