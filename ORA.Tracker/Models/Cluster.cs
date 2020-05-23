@@ -13,10 +13,11 @@ namespace ORA.Tracker.Models
         public Dictionary<string, string> members { get; set; } // key: id, value: name
         public List<string> admins { get; set; }
         public List<File> files { get; set; }
+        public List<string> invitedIdentities { get; set; }
 
         public Cluster() { }
 
-        public Cluster(Guid id, string name, string owner, string ownerName, Dictionary<string, string> members, List<string> admins, List<File> files)
+        public Cluster(Guid id, string name, string owner, string ownerName, Dictionary<string, string> members, List<string> admins, List<File> files, List<string> invitedIdentities)
         {
             this.id = id;
             this.name = name;
@@ -24,13 +25,14 @@ namespace ORA.Tracker.Models
             this.members = members;
             this.admins = admins;
             this.files = files;
+            this.invitedIdentities = invitedIdentities;
 
             if (!members.ContainsKey(owner))
                 this.members.Add(owner, ownerName);
         }
 
         public Cluster(string name, string owner, string ownerName)
-            : this(Guid.NewGuid(), name, owner, ownerName, new Dictionary<string, string>(), new List<string>(), new List<File>()) { }
+            : this(Guid.NewGuid(), name, owner, ownerName, new Dictionary<string, string>(), new List<string>(), new List<File>(), new List<string>()) { }
 
         public bool IsOwnedBy(string id)
             => this.owner == id;
@@ -40,6 +42,9 @@ namespace ORA.Tracker.Models
 
         public bool HasMember(string id)
             => this.members.ContainsKey(id);
+
+        public bool HasInvitedIdentity(string id)
+            => this.invitedIdentities.Contains(id);
 
         public bool HasFile(string id)
             => this.files.Exists(f => f.hash == id);

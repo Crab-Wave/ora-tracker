@@ -149,26 +149,11 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void Post_WhenMissingName_ShouldRespondWithBadRequest()
-        {
-            string expectedResponseContent = new Error($"Missing query parameter name").ToString();
-
-            var request = new MockupRouterRequest(HttpMethod.Post, "/clusters/id/members?id=id")
-            {
-                Credentials = this.token
-            };
-            var response = await router.GetResponseOf(request);
-
-            response.StatusCode.Should().Be(400);
-            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
-        }
-
-        [Fact]
         public async void Post_WhenInvalidClusterId_ShouldRespondWithNotFound()
         {
             string expectedResponseContent = new Error("Invalid Cluster id").ToString();
             string invalidClusterId = "invalidclusterid";
-            var request = new MockupRouterRequest(HttpMethod.Post, $"/clusters/{invalidClusterId}/members?id=1234&name=newmember")
+            var request = new MockupRouterRequest(HttpMethod.Post, $"/clusters/{invalidClusterId}/members?id=1234")
             {
                 Credentials = this.token
             };
@@ -190,7 +175,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
             cluster.members.Add(Guid.NewGuid().ToString(), this.token);
             services.ClusterManager.Put(cluster);
 
-            var request = new MockupRouterRequest(HttpMethod.Post, $"/clusters/{cluster.id.ToString()}/members?id=123&name=newmember")
+            var request = new MockupRouterRequest(HttpMethod.Post, $"/clusters/{cluster.id.ToString()}/members?id=123")
             {
                 Credentials = this.token
             };
@@ -204,11 +189,10 @@ namespace ORA.Tracker.Routes.Tests.Integration
         public async void Post_WhenOwnerOrAdminOfCluster_ShouldRespondWithOK()
         {
             string memberId = "memberid";
-            string memberName = "membername";
             var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromToken(this.token), "ownername");
             services.ClusterManager.Put(cluster);
 
-            var request = new MockupRouterRequest(HttpMethod.Post, $"/clusters/{cluster.id.ToString()}/members?id={memberId}&name={memberName}")
+            var request = new MockupRouterRequest(HttpMethod.Post, $"/clusters/{cluster.id.ToString()}/members?id={memberId}")
             {
                 Credentials = this.token
             };

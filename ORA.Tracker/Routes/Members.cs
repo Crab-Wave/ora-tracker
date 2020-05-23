@@ -41,12 +41,11 @@ namespace ORA.Tracker.Routes
 
         [Authenticate]
         [RequiredUrlParameters("id")]
-        [RequiredQueryParameters("id", "name")]
+        [RequiredQueryParameters("id")]
         protected override void post(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
             string id = request.QueryString["id"];
-            string name = request.QueryString["name"];
             this.services.TokenManager.RefreshToken(token);
 
             var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
@@ -63,8 +62,11 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            cluster.members.Add(id, name);
-            this.services.ClusterManager.Put(cluster);
+            if (!cluster.HasInvitedIdentity(id) && !cluster.HasMember(id))
+            {
+                cluster.invitedIdentities.Add(id);
+                this.services.ClusterManager.Put(cluster);
+            }
 
             response.Close();
         }

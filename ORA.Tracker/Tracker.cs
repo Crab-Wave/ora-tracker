@@ -16,6 +16,7 @@ namespace ORA.Tracker
             this.server.RegisterRoute("/ping", new Ping(services));
             this.server.RegisterRoute("/clusters/{id}", new Clusters(services));
             this.server.RegisterRoute("/auth", new Authentication(services));
+            this.server.RegisterRoute("/join", new Join(services));
             this.server.RegisterRoute("/clusters/{id}/members", new Members(services));
             this.server.RegisterRoute("/clusters/{id}/admins", new Admins(services));
             this.server.RegisterRoute("/clusters/{id}/files", new Files(services));
