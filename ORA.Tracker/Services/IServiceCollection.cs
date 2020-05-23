@@ -6,5 +6,6 @@ namespace ORA.Tracker.Services
     {
         ClusterManager ClusterManager { get; }
         TokenManager TokenManager { get; }
+        NodeManager NodeManager { get; }
     }
 }
