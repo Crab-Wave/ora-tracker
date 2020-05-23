@@ -6,7 +6,7 @@ namespace ORA.Tracker.Services.Managers
     public class TokenManager
     {
         public const int TokenSize = 32;
-        private const double tokenLifetimeInMinutes = 20;
+        private const double tokenLifetimeInMinutes = 90;
 
         private Dictionary<string, string> tokens;
         private Dictionary<string, string> ids;
