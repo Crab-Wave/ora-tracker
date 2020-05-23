@@ -133,7 +133,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void Post_WhenInvalid_ShouldRespondWithBadRequest()
+        public async void Post_WhenMissingId_ShouldRespondWithBadRequest()
         {
             string expectedResponseContent = new Error($"Missing query parameter id").ToString();
 
@@ -246,7 +246,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void Delete_WhenInvalid_ShouldRespondWithBadRequest()
+        public async void Delete_WhenMissingId_ShouldRespondWithBadRequest()
         {
             string expectedResponseContent = new Error($"Missing query parameter id").ToString();
 
