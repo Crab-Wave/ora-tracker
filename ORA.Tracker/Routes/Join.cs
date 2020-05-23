@@ -20,10 +20,9 @@ namespace ORA.Tracker.Routes
         protected override void post(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
-            string clusterId = request.QueryString["id"];
             this.services.TokenManager.RefreshToken(token);
 
-            var cluster = this.services.ClusterManager.Get(clusterId);
+            var cluster = this.services.ClusterManager.Get(request.QueryString["id"]);
             if (cluster == null)
             {
                 response.NotFound(invalidClusterId);
@@ -36,11 +35,14 @@ namespace ORA.Tracker.Routes
                 response.Forbidden(notAllowedJoinCluster);
                 return;
             }
+            if (!cluster.HasMember(id))
+            {
+                cluster.invitedIdentities.Remove(id);
+                cluster.members[id] = request.QueryString["name"];
 
-            cluster.invitedIdentities.Remove(id);
-            cluster.members[id] = request.QueryString["name"];
+                this.services.ClusterManager.Put(cluster);
+            }
 
-            this.services.ClusterManager.Put(cluster);
             response.Close();
         }
     }
