@@ -38,7 +38,7 @@ namespace ORA.Tracker.Routes
             string token;
             byte[] encryptedToken;
 
-            if (this.services.TokenManager.IsValidToken(id))
+            if (this.services.TokenManager.IsRegistered(id))
                 token = this.services.TokenManager.GetTokenFromId(id);
             else
                 token = this.services.TokenManager.NewToken();
@@ -55,9 +55,12 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            if (!this.services.TokenManager.IsRegistered(id))
+            if (!this.services.TokenManager.IsRegistered(token))
                 this.services.TokenManager.RegisterToken(id, token);
-            // Refresh token if id is registered ?
+            else if (this.services.TokenManager.IsTokenExpired(token))
+                this.services.TokenManager.UpdateToken(id, token);
+
+            this.services.NodeManager.Put(id, request.Ip.ToString());
 
             response.Close(Encoding.UTF8.GetBytes(Convert.ToBase64String(encryptedToken)), true);
         }
