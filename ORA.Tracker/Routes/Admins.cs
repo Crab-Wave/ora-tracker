@@ -64,7 +64,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            if (!cluster.HasMember(memberId))     // return error if is not member ?
+            if (!cluster.HasMember(memberId))
             {
                 response.BadRequest(notClusterMember);
                 return;

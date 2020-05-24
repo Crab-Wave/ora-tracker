@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Net.Http;
 using Xunit;
@@ -129,7 +130,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromToken(this.token), "ownername");
             string hash = "123141";
-            cluster.AddFile(new File(hash, "ORA", 42));
+            cluster.AddFile(services.TokenManager.GetIdFromToken(this.token), new File(hash, "ORA", 42));
             services.ClusterManager.Put(cluster);
 
             var request = new MockupRouterRequest(HttpMethod.Get, $"/clusters/{cluster.id.ToString()}/files?hash={hash}")
@@ -245,7 +246,9 @@ namespace ORA.Tracker.Routes.Tests.Integration
 
             response.StatusCode.Should().Be(200);
             response.Content.ReadAsStringAsync().Result.Should().BeEmpty();
-            services.ClusterManager.Get(cluster.id.ToString()).GetFile(file.hash).Should().BeEquivalentTo(file);
+            services.ClusterManager.Get(cluster.id.ToString()).GetFile(file.hash)
+                .Should().BeEquivalentTo(
+                    new File(file.hash, file.path, file.size, new List<string>() { services.TokenManager.GetIdFromToken(this.token) }));
         }
 
         [Fact]
@@ -347,7 +350,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromToken(this.token), "ownername");
             var file = new File("afd123", "ORA", 42);
-            cluster.AddFile(file);
+            cluster.AddFile(services.TokenManager.GetIdFromToken(this.token), file);
             services.ClusterManager.Put(cluster);
 
             var request = new MockupRouterRequest(HttpMethod.Delete, $"/clusters/{cluster.id.ToString()}/files?hash={file.hash}")

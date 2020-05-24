@@ -52,8 +52,10 @@ namespace ORA.Tracker.Models
         public File GetFile(string hash)
             => this.files.Find(f => f.hash == hash);
 
-        public void AddFile(File file)
+        public void AddFile(string userid, File file)
         {
+            if (!file.owners.Contains(userid))
+                file.owners.Add(userid);
             if (!this.HasFile(file.hash))
                 this.files.Add(file);
         }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text;
 using Xunit;
 using FluentAssertions;
@@ -41,7 +42,7 @@ namespace ORA.Tracker.Services.Databases.Tests.Integration
 
             testee.Put(key, cluster1.Serialize());
             var cluster2 = cluster1;
-            cluster2.files.Add(new File("1234", "path", 1400));
+            cluster2.files.Add(new File("1234", "path", 1400, new List<string>()));
             testee.Put(key, cluster2.Serialize());
 
             Cluster.Deserialize(testee.Get(key))

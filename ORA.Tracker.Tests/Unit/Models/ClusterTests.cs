@@ -21,7 +21,11 @@ namespace ORA.Tracker.Models.Tests.Unit
                 { "4444", "Tats"}
             };
             var admins = new List<string>() { "Leo", "Raffael", "Adam", "Pierre-Corentin" };
-            var files = new List<File>() { new File("123141", "ORA", 42), new File("sfasdf1", "hello", 31415) };
+            var files = new List<File>()
+            {
+                new File("123141", "ORA", 42, new List<string>() { "12313141", "0084240" }),
+                new File("sfasdf1", "hello", 31415, new List<string>() { "123131" })
+            };
             var invitedIdentities = new List<string>() { "12314", "34525623" };
 
             var testee = new Cluster(id, "clustername", owner, "ownername", members, admins, files, invitedIdentities);
@@ -48,12 +52,19 @@ namespace ORA.Tracker.Models.Tests.Unit
              +  "    {\n"
              +  "      \"hash\": \"123141\",\n"
              +  "      \"path\": \"ORA\",\n"
-             +  "      \"size\": 42\n"
+             +  "      \"size\": 42,\n"
+             +  "      \"owners\": [\n"
+             +  "        \"12313141\",\n"
+             +  "        \"0084240\"\n"
+             +  "      ]\n"
              +  "    },\n"
              +  "    {\n"
              +  "      \"hash\": \"sfasdf1\",\n"
              +  "      \"path\": \"hello\",\n"
-             +  "      \"size\": 31415\n"
+             +  "      \"size\": 31415,\n"
+             +  "      \"owners\": [\n"
+             +  "        \"123131\"\n"
+             +  "      ]\n"
              +  "    }\n"
              +  "  ],\n"
              +  "  \"invitedIdentities\": [\n"
@@ -130,7 +141,11 @@ namespace ORA.Tracker.Models.Tests.Unit
                 { "4444", "Tats"}
             };
             var admins = new List<string>() { "Leo", "Raffael", "Adam", "Pierre-Corentin" };
-            var files = new List<File>() { new File("123141", "ORA", 42), new File("sfasdf1", "hello", 31415) };
+            var files = new List<File>()
+            {
+                new File("123141", "ORA", 42, new List<string>()),
+                new File("sfasdf1", "hello", 31415, new List<string>())
+            };
             var invitedIdentities = new List<string>() { "12314", "34525623" };
 
             var testee = new Cluster(id, name, owner, ownername, members, admins, files, invitedIdentities);
