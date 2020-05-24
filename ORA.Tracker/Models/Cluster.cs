@@ -46,11 +46,11 @@ namespace ORA.Tracker.Models
         public bool HasInvitedIdentity(string id)
             => this.invitedIdentities.Contains(id);
 
-        public bool HasFile(string id)
-            => this.files.Exists(f => f.hash == id);
+        public bool HasFile(string hash)
+            => this.files.Exists(f => f.hash == hash);
 
-        public File GetFile(string id)
-            => this.files.Find(f => f.hash == id);
+        public File GetFile(string hash)
+            => this.files.Find(f => f.hash == hash);
 
         public void AddFile(File file)
         {
@@ -58,12 +58,15 @@ namespace ORA.Tracker.Models
                 this.files.Add(file);
         }
 
-        public void RemoveFile(string id)
+        public void RemoveFile(string hash)
         {
             for (int i = 0; i < this.files.Count; i++)
             {
-                if (this.files[i].hash == id)
+                if (this.files[i].hash == hash)
+                {
                     this.files.RemoveAt(i);
+                    return;
+                }
             }
         }
 
