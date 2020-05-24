@@ -90,15 +90,15 @@ namespace ORA.Tracker.Routes.Attributes.Tests.Integration
             response.StatusCode.Should().Be(200);
             response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
         }
-    }
 
-    internal class MockupRoute : Route
-    {
-        public MockupRoute(IServiceCollection services)
-            : base(services) { }
+        private class MockupRoute : Route
+        {
+            public MockupRoute(IServiceCollection services)
+                : base(services) { }
 
-        [Authenticate]
-        protected override void get(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
-            => response.Close(Encoding.UTF8.GetBytes("You are authorized to acces this."), true);
+            [Authenticate]
+            protected override void get(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
+                => response.Close(Encoding.UTF8.GetBytes("You are authorized to acces this."), true);
+        }
     }
 }
