@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using ORA.Tracker.Services;
 using ORA.Tracker.Http;
@@ -12,6 +13,7 @@ namespace ORA.Tracker.Routes
         private static readonly byte[] invalidClusterId = new Error("Invalid Cluster id").ToBytes();
         private static readonly byte[] unauthorizedAction = new Error("Unauthorized action").ToBytes();
         private static readonly byte[] notClusterFile = new Error("hash does not correspond to a cluster file").ToBytes();
+        private static readonly byte[] invalidFile = new Error("This is not a valid file").ToBytes();
 
         public Files(IServiceCollection services)
             : base(services) { }
@@ -32,7 +34,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            if (!cluster.members.ContainsKey(this.services.TokenManager.GetIdFromToken(token)))
+            if (!cluster.HasMember(this.services.TokenManager.GetIdFromToken(token)))
             {
                 response.Forbidden(unauthorizedAction);
                 return;
@@ -63,14 +65,23 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            if (!cluster.members.ContainsKey(this.services.TokenManager.GetIdFromToken(token)))
+            if (!cluster.HasMember(this.services.TokenManager.GetIdFromToken(token)))
             {
                 response.Forbidden(unauthorizedAction);
                 return;
             }
 
-            // TODO: check invalid data
-            var file = File.Deserialize(request.Body);
+            File file = null;
+
+            try
+            {
+                file = File.Deserialize(request.Body);
+            }
+            catch (Exception)
+            {
+                response.BadRequest(invalidFile);
+                return;
+            }
 
             cluster.AddFile(file);
             this.services.ClusterManager.Put(cluster);
