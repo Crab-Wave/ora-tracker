@@ -371,7 +371,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         [Fact]
         public async void WhenHeadRequest_ShouldRespondWithNotFoundAndEmptyBody()
         {
-            var response = await router.GetResponseOf(HttpMethod.Head, "/");
+            var response = await router.GetResponseOf(HttpMethod.Head, "/clusters/id/files");
 
             response.StatusCode.Should().Be(404);
             response.Content.ReadAsByteArrayAsync().Result.Should().BeEmpty();
@@ -382,11 +382,11 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             string notFound = new Error("Not Found").ToString();
 
-            var response = await router.GetResponseOf(HttpMethod.Put, "/");
+            var response = await router.GetResponseOf(HttpMethod.Put, "/clusters/id/files");
             response.StatusCode.Should().Be(404);
             response.Content.ReadAsStringAsync().Result.Should().Be(notFound);
 
-            response = await router.GetResponseOf(HttpMethod.Options, "/");
+            response = await router.GetResponseOf(HttpMethod.Options, "/clusters/id/files");
             response.StatusCode.Should().Be(404);
             response.Content.ReadAsStringAsync().Result.Should().Be(notFound);
         }
