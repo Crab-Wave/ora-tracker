@@ -55,7 +55,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            if (!this.services.TokenManager.IsRegistered(token))
+            if (!this.services.TokenManager.IsTokenRegistered(token))
                 this.services.TokenManager.RegisterToken(id, token);
             else if (this.services.TokenManager.IsTokenExpired(token))
                 this.services.TokenManager.UpdateToken(id, token);
