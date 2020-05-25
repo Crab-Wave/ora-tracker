@@ -16,13 +16,14 @@ namespace ORA.Tracker.Routes
             : base(services) { }
 
         [Authenticate]
-        [RequiredQueryParameters("id", "name")]
+        [RequiredUrlParameters("id")]
+        [RequiredQueryParameters("username")]
         protected override void post(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
             this.services.TokenManager.RefreshToken(token);
 
-            var cluster = this.services.ClusterManager.Get(request.QueryString["id"]);
+            var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
             if (cluster == null)
             {
                 response.NotFound(invalidClusterId);
@@ -30,18 +31,22 @@ namespace ORA.Tracker.Routes
             }
 
             string id = this.services.TokenManager.GetIdFromToken(token);
+            if (cluster.HasMember(id))
+            {
+                response.Close();
+                return;
+            }
+
             if (!cluster.HasInvitedIdentity(id))
             {
                 response.Forbidden(notAllowedJoinCluster);
                 return;
             }
-            if (!cluster.HasMember(id))
-            {
-                cluster.invitedIdentities.Remove(id);
-                cluster.members[id] = request.QueryString["name"];
 
-                this.services.ClusterManager.Put(cluster);
-            }
+            cluster.invitedIdentities.Remove(id);
+            cluster.members[id] = request.QueryString["username"];
+
+            this.services.ClusterManager.Put(cluster);
 
             response.Close();
         }
