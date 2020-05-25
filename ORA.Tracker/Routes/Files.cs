@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using ORA.Tracker.Services;
 using ORA.Tracker.Http;
@@ -48,7 +49,7 @@ namespace ORA.Tracker.Routes
 
             var file = cluster.GetFile(hash);
 
-            response.Close(file.Serialize(), true);
+            response.Close(file.SerializeWithNodes(this.services.NodeManager), true);
         }
 
         [Authenticate]
@@ -76,7 +77,7 @@ namespace ORA.Tracker.Routes
 
             try
             {
-                file = File.Deserialize(request.Body);
+                file = File.DeserializeBody(request.Body);
             }
             catch (Exception)
             {

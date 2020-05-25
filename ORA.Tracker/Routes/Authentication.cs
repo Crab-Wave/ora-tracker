@@ -62,6 +62,8 @@ namespace ORA.Tracker.Routes
 
             this.services.NodeManager.Put(id, request.Ip.ToString());
 
+            Console.WriteLine(token);
+
             response.Close(Encoding.UTF8.GetBytes(Convert.ToBase64String(encryptedToken)), true);
         }
     }

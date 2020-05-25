@@ -218,6 +218,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
 
             response.StatusCode.Should().Be(200);
             response.Content.ReadAsStringAsync().Result.Should().BeEmpty();
+            services.ClusterManager.Get(cluster.id.ToString()).admins.Should().Contain(a => a == memberId);
         }
 
         [Fact]
