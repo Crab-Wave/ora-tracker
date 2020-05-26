@@ -81,18 +81,15 @@ namespace ORA.Tracker.Services.Managers
         public string GetIdFromIp(string ip) => this.ids[ip];
         public string GetToken(string id, string ip) => this.tokens[new Tuple<string, string>(id, ip)];
 
-        public void RemoveToken(string token)
+        public void RemoveNode(string ip)
         {
-            this.tokenExpirations.Remove(token);
+            var node = new Tuple<string, string>(id, ip);
+            string token = this.tokens[node];
 
-            foreach (var k in this.tokens.Keys)
-            {
-                if (this.tokens[k] == token)
-                {
-                    this.tokens.Remove(k);
-                    return;
-                }
-            }
+            this.tokenExpirations.Remove(token);
+            this.tokens.Remove(node);
+            this.ids.Remove(ip);
+            this.ips.Remove(id);
         }
 
         public bool IsNodeRegistered(string id, string ip) => this.tokens.ContainsKey(new Tuple<string, string>(id, ip));
