@@ -81,7 +81,7 @@ namespace ORA.Tracker.Services.Managers
         public string GetIdFromIp(string ip) => this.ids[ip];
         public string GetToken(string id, string ip) => this.tokens[new Tuple<string, string>(id, ip)];
 
-        public void RemoveNode(string ip)
+        public void RemoveNode(string id, string ip)
         {
             var node = new Tuple<string, string>(id, ip);
             string token = this.tokens[node];
