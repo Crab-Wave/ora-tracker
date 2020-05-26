@@ -28,8 +28,8 @@ namespace ORA.Tracker.Services.Managers
         {
             string token = this.NewToken();
 
-            if (this.ips[id] == null)
-                this.ips[id] = new List<string>();
+            if (!this.ips.ContainsKey(id))
+                this.ips.Add(id, new List<string>());
 
             this.tokens.Add(new Tuple<string, string>(id, ip), token);
             this.ids.Add(ip, id);
