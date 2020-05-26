@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Net;
 using ORA.Tracker.Services;
 using ORA.Tracker.Http;
@@ -10,7 +9,6 @@ namespace ORA.Tracker.Routes
 {
     public class Files : Route
     {
-        private static readonly byte[] missingClusterId = new Error("Missing cluster id").ToBytes();
         private static readonly byte[] invalidClusterId = new Error("Invalid Cluster id").ToBytes();
         private static readonly byte[] unauthorizedAction = new Error("Unauthorized action").ToBytes();
         private static readonly byte[] notClusterFile = new Error("hash does not correspond to a cluster file").ToBytes();
@@ -48,8 +46,7 @@ namespace ORA.Tracker.Routes
             }
 
             var file = cluster.GetFile(hash);
-
-            response.Close(file.SerializeWithNodes(this.services.NodeManager), true);
+            response.Close(file.SerializeWithOwners(cluster.GetFileOwners(this.services.NodeManager, file.hash)), true);
         }
 
         [Authenticate]
@@ -86,6 +83,7 @@ namespace ORA.Tracker.Routes
             }
 
             cluster.AddFile(id, file);
+            this.services.NodeManager.AddFileOwned(id, file.hash);
             this.services.ClusterManager.Put(cluster);
 
             response.Close();
@@ -115,6 +113,7 @@ namespace ORA.Tracker.Routes
             }
 
             cluster.RemoveFile(hash);
+            // TODO: Remove file from node manager
             this.services.ClusterManager.Put(cluster);
 
             response.Close();

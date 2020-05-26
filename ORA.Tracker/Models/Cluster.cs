@@ -3,6 +3,8 @@ using System.Text.Json;
 using System.Linq;
 using System.Collections.Generic;
 
+using ORA.Tracker.Services.Managers;
+
 namespace ORA.Tracker.Models
 {
     public class Cluster
@@ -54,8 +56,8 @@ namespace ORA.Tracker.Models
 
         public void AddFile(string userid, File file)
         {
-            if (!file.owners.Contains(userid))
-                file.owners.Add(userid);
+            if (!file.HasOwner(userid))
+                file.AddOwner(userid);
             if (!this.HasFile(file.hash))
                 this.files.Add(file);
         }
@@ -70,6 +72,19 @@ namespace ORA.Tracker.Models
                     return;
                 }
             }
+        }
+
+        public List<Node> GetFileOwners(NodeManager nodeManager, string hash)
+        {
+            var fileOwners = new List<Node>();
+
+            foreach (var id in this.members.Keys)
+            {
+                if (nodeManager.IsNodeOwningFile(id, hash))
+                    fileOwners.Add(new Node(id, nodeManager.GetIp(id)));
+            }
+
+            return fileOwners;
         }
 
         public byte[] Serialize() => JsonSerializer.SerializeToUtf8Bytes<Cluster>(this, new JsonSerializerOptions { WriteIndented = true });

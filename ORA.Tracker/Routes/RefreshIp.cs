@@ -14,7 +14,7 @@ namespace ORA.Tracker.Routes
         [Authenticate]
         protected override void post(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
-            this.services.NodeManager.Put(
+            this.services.NodeManager.UpdateIp(
                 this.services.TokenManager.GetIdFromToken(request.Token),
                 request.Ip.ToString());
 

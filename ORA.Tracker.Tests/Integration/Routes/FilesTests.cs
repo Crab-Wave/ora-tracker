@@ -32,7 +32,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
             {
                 string id = Guid.NewGuid().ToString();
                 services.TokenManager.RegisterToken(id, token);
-                services.NodeManager.Put(id, "::1");
+                services.NodeManager.RegisterNode(new Node(id, "::1"));
             }
         }
 
@@ -144,7 +144,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
             var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(200);
-            response.Content.ReadAsByteArrayAsync().Result.Should().BeEquivalentTo(cluster.GetFile(hash).SerializeWithNodes(services.NodeManager));
+            response.Content.ReadAsByteArrayAsync().Result.Should().BeEquivalentTo(cluster.GetFile(hash).SerializeWithOwners(cluster.GetFileOwners(services.NodeManager, hash)));
         }
 
         [Fact]

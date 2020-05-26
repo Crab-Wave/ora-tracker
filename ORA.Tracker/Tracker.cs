@@ -21,6 +21,7 @@ namespace ORA.Tracker
             this.server.RegisterRoute("/clusters/{id}/members", new Members(services));
             this.server.RegisterRoute("/clusters/{id}/admins", new Admins(services));
             this.server.RegisterRoute("/clusters/{id}/files", new Files(services));
+            this.server.RegisterRoute("/clusters/{id}/files/owned", new FilesOwned(services));
         }
 
         public void Start() => this.server.Listen();

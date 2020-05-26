@@ -60,7 +60,10 @@ namespace ORA.Tracker.Routes
             else if (this.services.TokenManager.IsTokenExpired(token))
                 this.services.TokenManager.UpdateToken(id, token);
 
-            this.services.NodeManager.Put(id, request.Ip.ToString());
+            if (this.services.NodeManager.IsNodeRegistered(id))
+                this.services.NodeManager.UpdateIp(id, request.Ip.ToString());
+            else
+                this.services.NodeManager.RegisterNode(new Node(id, request.Ip.ToString()));
 
             response.Close(Encoding.UTF8.GetBytes(Convert.ToBase64String(encryptedToken)), true);
         }
