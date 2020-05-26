@@ -24,7 +24,7 @@ namespace ORA.Tracker.Routes
         protected override void post(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
-            string id = this.services.TokenManager.GetIdFromToken(token);
+            string id = this.services.TokenManager.GetIdFromIp(request.Ip);
             this.services.TokenManager.RefreshToken(token);
 
             var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);

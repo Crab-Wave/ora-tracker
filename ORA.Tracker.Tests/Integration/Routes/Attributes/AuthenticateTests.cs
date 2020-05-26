@@ -27,9 +27,7 @@ namespace ORA.Tracker.Routes.Attributes.Tests.Integration
 
         public AuthenticateTests()
         {
-            this.token = services.TokenManager.NewToken();
-            if (!services.TokenManager.IsTokenRegistered(token))
-                services.TokenManager.RegisterToken(Guid.NewGuid().ToString(), token);
+            this.token = services.TokenManager.RegisterNode(Guid.NewGuid().ToString(), router.ClientIp);
         }
 
         [Fact]

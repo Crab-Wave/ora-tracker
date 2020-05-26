@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace ORA.Tracker.Services.Managers
@@ -8,30 +9,68 @@ namespace ORA.Tracker.Services.Managers
         public const int TokenSize = 32;
         private const double tokenLifetimeInMinutes = 90;
 
-        private Dictionary<string, string> tokens;
+        private Dictionary<Tuple<string, string>, string> tokens;
         private Dictionary<string, string> ids;
+        private Dictionary<string, List<string>> ips;
         private Dictionary<string, long> tokenExpirations;
 
         public TokenManager()
         {
-            this.tokens = new Dictionary<string, string>();
+            this.tokens = new Dictionary<Tuple<string, string>, string>();
             this.ids = new Dictionary<string, string>();
+            this.ips = new Dictionary<string, List<string>>();
             this.tokenExpirations = new Dictionary<string, long>();
         }
 
         public string NewToken() => generateToken(TokenSize);
 
-        public void RegisterToken(string id, string token)
+        public string RegisterNode(string id, string ip)
         {
-            if (this.IsRegistered(id))
-                throw new ArgumentException("User already registered.");
+            string token = this.NewToken();
 
-            if (this.IsTokenRegistered(token) && this.ids[token] != id)
-                throw new ArgumentException("A user with a different id is already registered with this token.");
+            if (this.ips[id] == null)
+                this.ips[id] = new List<string>();
 
-            this.tokens.Add(id, token);
-            this.ids.Add(token, id);
+            this.tokens.Add(new Tuple<string, string>(id, ip), token);
+            this.ids.Add(ip, id);
+            this.ips[id].Add(ip);
             this.tokenExpirations.Add(token, this.GetExpirationDateFromNow());
+
+            return token;
+        }
+
+        public string UpdateToken(string id, string ip)
+        {
+            var node = new Tuple<string, string>(id, ip);
+            this.tokenExpirations.Remove(this.tokens[node]);
+
+            string newToken = this.NewToken();
+            this.tokens[node] = newToken;
+            this.tokenExpirations[newToken] = this.GetExpirationDateFromNow();
+
+            return newToken;
+        }
+
+        public void UpdateIp(string token, string newIp)
+        {
+            string id = "";
+            string oldIp = "";
+            foreach (var k in this.tokens.Keys)
+            {
+                if (this.tokens[k] == token)
+                {
+                    id = k.Item1;
+                    oldIp = k.Item2;
+                    break;
+                }
+            }
+
+            this.tokens.Remove(new Tuple<string, string>(id, oldIp));
+            this.tokens[new Tuple<string, string>(id, newIp)] = token;
+            this.ips[id].Remove(oldIp);
+            this.ips[id].Add(newIp);
+            this.ids.Remove(oldIp);
+            this.ids.Add(newIp, id);
         }
 
         public void RefreshToken(string token)
@@ -39,24 +78,27 @@ namespace ORA.Tracker.Services.Managers
             this.tokenExpirations[token] = this.GetExpirationDateFromNow();
         }
 
-        public void UpdateToken(string id, string token)
+        public string GetIdFromIp(string ip) => this.ids[ip];
+        public string GetToken(string id, string ip) => this.tokens[new Tuple<string, string>(id, ip)];
+
+        public void RemoveToken(string token)
         {
-            this.ids.Remove(token);
             this.tokenExpirations.Remove(token);
 
-            string newToken = this.NewToken();
-            this.tokens[id] = newToken;
-            this.ids[newToken] = id;
-            this.tokenExpirations[newToken] = this.GetExpirationDateFromNow();
+            foreach (var k in this.tokens.Keys)
+            {
+                if (this.tokens[k] == token)
+                {
+                    this.tokens.Remove(k);
+                    return;
+                }
+            }
         }
 
-        public string GetTokenFromId(string id) => this.tokens[id];
-        public string GetIdFromToken(string token) => this.ids[token];
-
-        public bool IsRegistered(string id) => this.tokens.ContainsKey(id);
+        public bool IsNodeRegistered(string id, string ip) => this.tokens.ContainsKey(new Tuple<string, string>(id, ip));
 
         public bool IsValidToken(string token) => this.IsTokenRegistered(token) && !this.IsTokenExpired(token);
-        public bool IsTokenRegistered(string token) => this.ids.ContainsKey(token);
+        public bool IsTokenRegistered(string token) => this.tokens.ContainsValue(token);
         public bool IsTokenExpired(string token) => DateTime.UtcNow.Ticks > this.tokenExpirations[token];
 
         private long GetExpirationDateFromNow()

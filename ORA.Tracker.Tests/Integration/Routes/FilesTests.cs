@@ -27,13 +27,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
 
         public FilesTests()
         {
-            this.token = services.TokenManager.NewToken();
-            if (!services.TokenManager.IsTokenRegistered(token))
-            {
-                string id = Guid.NewGuid().ToString();
-                services.TokenManager.RegisterToken(id, token);
-                services.NodeManager.RegisterNode(new Node(id, "::1"));
-            }
+            this.token = services.TokenManager.RegisterNode(Guid.NewGuid().ToString(), router.ClientIp);
         }
 
         [Fact]
@@ -96,8 +90,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string expectedResponseContent = new Error("Unauthorized action").ToString();
 
             string ownerId = Guid.NewGuid().ToString();
-            string token = services.TokenManager.NewToken();
-            services.TokenManager.RegisterToken(ownerId, token);
+            string token = services.TokenManager.RegisterNode(ownerId, "[::1]:42");
             var cluster = new Cluster("testcluster", ownerId, "ownername");
             services.ClusterManager.Put(cluster);
 
@@ -116,7 +109,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             string expectedResponseContent = new Error("hash does not correspond to a cluster file").ToString();
 
-            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromToken(this.token), "ownername");
+            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromIp(router.ClientIp), "ownername");
             services.ClusterManager.Put(cluster);
 
             var request = new MockupRouterRequest(HttpMethod.Get, $"/clusters/{cluster.id.ToString()}/files?hash=hash")
@@ -132,9 +125,9 @@ namespace ORA.Tracker.Routes.Tests.Integration
         [Fact]
         public async void Get_WhenValidRequest_ShouldRespondFileInformation()
         {
-            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromToken(this.token), "ownername");
+            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromIp(router.ClientIp), "ownername");
             string hash = "123141";
-            cluster.AddFile(services.TokenManager.GetIdFromToken(this.token), new File(hash, "ORA", 42));
+            cluster.AddFile(services.TokenManager.GetIdFromIp(router.ClientIp), new File(hash, "ORA", 42));
             services.ClusterManager.Put(cluster);
 
             var request = new MockupRouterRequest(HttpMethod.Get, $"/clusters/{cluster.id.ToString()}/files?hash={hash}")
@@ -199,8 +192,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string expectedResponseContent = new Error("Unauthorized action").ToString();
 
             string ownerId = Guid.NewGuid().ToString();
-            string token = services.TokenManager.NewToken();
-            services.TokenManager.RegisterToken(ownerId, token);
+            string token = services.TokenManager.RegisterNode(ownerId, "[::1]:42");
             var cluster = new Cluster("testcluster", ownerId, "ownername");
             cluster.members.Add(Guid.NewGuid().ToString(), this.token);
             services.ClusterManager.Put(cluster);
@@ -221,7 +213,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             string expectedResponseContent = new Error("This is not a valid file").ToString();
 
-            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromToken(this.token), "ownername");
+            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromIp(router.ClientIp), "ownername");
             services.ClusterManager.Put(cluster);
 
             var request = new MockupRouterRequest(HttpMethod.Post, $"/clusters/{cluster.id.ToString()}/files")
@@ -237,7 +229,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         [Fact]
         public async void Post_WhenValid_ShouldRespondWithOK()
         {
-            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromToken(this.token), "ownername");
+            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromIp(router.ClientIp), "ownername");
             services.ClusterManager.Put(cluster);
             var file = new File("a121d1df", "ORA", 42);
 
@@ -252,7 +244,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
             response.Content.ReadAsStringAsync().Result.Should().BeEmpty();
             services.ClusterManager.Get(cluster.id.ToString()).GetFile(file.hash)
                 .Should().BeEquivalentTo(
-                    new File(file.hash, file.path, file.size, new List<string>() { services.TokenManager.GetIdFromToken(this.token) }));
+                    new File(file.hash, file.path, file.size, new List<string>() { services.TokenManager.GetIdFromIp(router.ClientIp) }));
         }
 
         [Fact]
@@ -316,8 +308,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string expectedResponseContent = new Error("Unauthorized action").ToString();
 
             string ownerId = Guid.NewGuid().ToString();
-            string token = services.TokenManager.NewToken();
-            services.TokenManager.RegisterToken(ownerId, token);
+            string token = services.TokenManager.RegisterNode(ownerId, "[::1]:42");
             var cluster = new Cluster("testcluster", ownerId, "ownername");
             cluster.members.Add(Guid.NewGuid().ToString(), this.token);
             services.ClusterManager.Put(cluster);
@@ -335,7 +326,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         [Fact]
         public async void Delete_WhenInvalidHash_ShouldRespondWithOK()
         {
-            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromToken(this.token), "ownername");
+            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromIp(router.ClientIp), "ownername");
             services.ClusterManager.Put(cluster);
 
             var request = new MockupRouterRequest(HttpMethod.Delete, $"/clusters/{cluster.id.ToString()}/files?hash=hash")
@@ -352,9 +343,9 @@ namespace ORA.Tracker.Routes.Tests.Integration
         [Fact]
         public async void Delete_WhenValidHash_ShouldRespondWithOK()
         {
-            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromToken(this.token), "ownername");
+            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromIp(router.ClientIp), "ownername");
             var file = new File("afd123", "ORA", 42);
-            cluster.AddFile(services.TokenManager.GetIdFromToken(this.token), file);
+            cluster.AddFile(services.TokenManager.GetIdFromIp(router.ClientIp), file);
             services.ClusterManager.Put(cluster);
 
             var request = new MockupRouterRequest(HttpMethod.Delete, $"/clusters/{cluster.id.ToString()}/files?hash={file.hash}")

@@ -33,7 +33,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            if (!cluster.HasMember(this.services.TokenManager.GetIdFromToken(token)))
+            if (!cluster.HasMember(this.services.TokenManager.GetIdFromIp(request.Ip)))
             {
                 response.Forbidden(unauthorizedAction);
                 return;
@@ -54,7 +54,7 @@ namespace ORA.Tracker.Routes
         protected override void post(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
-            string id = this.services.TokenManager.GetIdFromToken(token);
+            string id = this.services.TokenManager.GetIdFromIp(request.Ip);
             this.services.TokenManager.RefreshToken(token);
 
             var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
@@ -105,7 +105,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            string userId = this.services.TokenManager.GetIdFromToken(token);
+            string userId = this.services.TokenManager.GetIdFromIp(request.Ip);
             if (userId != cluster.owner && !cluster.admins.Contains(userId))
             {
                 response.Forbidden(unauthorizedAction);

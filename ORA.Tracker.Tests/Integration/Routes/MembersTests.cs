@@ -26,9 +26,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
 
         public MembersTests()
         {
-            this.token = services.TokenManager.NewToken();
-            if (!services.TokenManager.IsTokenRegistered(token))
-                services.TokenManager.RegisterToken(Guid.NewGuid().ToString(), token);
+            this.token = services.TokenManager.RegisterNode(Guid.NewGuid().ToString(), router.ClientIp);
         }
 
         [Fact]
@@ -77,8 +75,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string expectedResponseContent = new Error("Unauthorized action").ToString();
 
             string ownerId = Guid.NewGuid().ToString();
-            string token = services.TokenManager.NewToken();
-            services.TokenManager.RegisterToken(ownerId, token);
+            string token = services.TokenManager.RegisterNode(ownerId, "[::1]:42");
             var cluster = new Cluster("testcluster", ownerId, "ownername");
             services.ClusterManager.Put(cluster);
 
@@ -95,7 +92,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         [Fact]
         public async void Get_WhenMemberOfCluster_ShouldRespondWithListOfMembers()
         {
-            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromToken(this.token), "ownername");
+            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromIp(router.ClientIp), "ownername");
             services.ClusterManager.Put(cluster);
 
             var request = new MockupRouterRequest(HttpMethod.Get, $"/clusters/{cluster.id.ToString()}/members")
@@ -169,8 +166,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string expectedResponseContent = new Error("Unauthorized action").ToString();
 
             string ownerId = Guid.NewGuid().ToString();
-            string token = services.TokenManager.NewToken();
-            services.TokenManager.RegisterToken(ownerId, token);
+            string token = services.TokenManager.RegisterNode(ownerId, "[::1]:42");
             var cluster = new Cluster("testcluster", ownerId, "ownername");
             cluster.members.Add(Guid.NewGuid().ToString(), this.token);
             services.ClusterManager.Put(cluster);
@@ -189,7 +185,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         public async void Post_WhenOwnerOrAdminOfCluster_ShouldRespondWithOK()
         {
             string memberId = "memberid";
-            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromToken(this.token), "ownername");
+            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromIp(router.ClientIp), "ownername");
             services.ClusterManager.Put(cluster);
 
             var request = new MockupRouterRequest(HttpMethod.Post, $"/clusters/{cluster.id.ToString()}/members?id={memberId}")
@@ -263,8 +259,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string expectedResponseContent = new Error("Unauthorized action").ToString();
 
             string ownerId = Guid.NewGuid().ToString();
-            string token = services.TokenManager.NewToken();
-            services.TokenManager.RegisterToken(ownerId, token);
+            string token = services.TokenManager.RegisterNode(ownerId, "[::1]:42");
             var cluster = new Cluster("testcluster", ownerId, "ownername");
             cluster.members.Add(Guid.NewGuid().ToString(), this.token);
             services.ClusterManager.Put(cluster);
@@ -284,7 +279,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             string memberId = "memberid";
             string memberName = "membername";
-            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromToken(this.token), "ownername");
+            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromIp(router.ClientIp), "ownername");
             cluster.members[memberId] = memberName;
             services.ClusterManager.Put(cluster);
 
