@@ -25,7 +25,8 @@ namespace ORA.Tracker.Routes.Tests.Integration
 
         public ClustersTests()
         {
-            this.token = services.TokenManager.RegisterNode(Guid.NewGuid().ToString(), router.ClientIp);
+            this.token = services.TokenManager.NewToken();
+            services.TokenManager.RegisterToken(new Node(Guid.NewGuid().ToString(), router.ClientIp), this.token);
         }
 
         [Fact]
@@ -137,7 +138,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         [Fact]
         public async void Delete_WhenExistingClusterAndAuthorized_ShouldRespondWithEmptyBody()
         {
-            Cluster c = new Cluster("test", services.TokenManager.GetIdFromIp(router.ClientIp), "ownerName");
+            Cluster c = new Cluster("test", services.TokenManager.GetNodeFromToken(this.token).id, "ownerName");
             services.ClusterManager.Put(c);
 
             var request = new MockupRouterRequest(HttpMethod.Delete, $"/clusters/{c.id.ToString()}")
