@@ -27,7 +27,12 @@ namespace ORA.Tracker.Routes.Tests.Integration
 
         public FilesTests()
         {
-            var node = new Node(Guid.NewGuid().ToString(), "::1");
+            Node node;
+            if (IsRunningUnderLinux())
+                node = new Node(Guid.NewGuid().ToString(), "127.0.0.1");
+            else
+                node = new Node(Guid.NewGuid().ToString(), "::1");
+
             this.token = services.TokenManager.NewToken();
             services.NodeManager.RegisterNode(node);
             services.TokenManager.RegisterToken(node, this.token);
@@ -386,6 +391,12 @@ namespace ORA.Tracker.Routes.Tests.Integration
             response = await router.GetResponseOf(HttpMethod.Options, "/clusters/id/files");
             response.StatusCode.Should().Be(404);
             response.Content.ReadAsStringAsync().Result.Should().Be(notFound);
+        }
+
+        private static bool IsRunningUnderLinux()
+        {
+            int plateform = (int) System.Environment.OSVersion.Platform;
+            return plateform == 4 || plateform == 6 || plateform == 128;
         }
     }
 }
