@@ -27,7 +27,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
 
         public FilesTests()
         {
-            var node = new Node(Guid.NewGuid().ToString(), router.ClientIp);
+            var node = new Node(Guid.NewGuid().ToString(), "::1");
             this.token = services.TokenManager.NewToken();
             services.NodeManager.RegisterNode(node);
             services.TokenManager.RegisterToken(node, this.token);
