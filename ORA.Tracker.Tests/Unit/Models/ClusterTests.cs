@@ -21,9 +21,14 @@ namespace ORA.Tracker.Models.Tests.Unit
                 { "4444", "Tats"}
             };
             var admins = new List<string>() { "Leo", "Raffael", "Adam", "Pierre-Corentin" };
-            var files = new List<string>() { "ORA.exe", "hello.c" };
+            var files = new List<File>()
+            {
+                new File("123141", "ORA", 42, new List<string>() { "12313141", "0084240" }),
+                new File("sfasdf1", "hello", 31415, new List<string>() { "123131" })
+            };
+            var invitedIdentities = new List<string>() { "12314", "34525623" };
 
-            var testee = new Cluster(id, "clustername", owner, "ownername", members, admins, files);
+            var testee = new Cluster(id, "clustername", owner, "ownername", members, admins, files, invitedIdentities);
 
             Encoding.UTF8.GetString(testee.Serialize()).Replace("\r", "").Should().Be(
                 "{\n"
@@ -44,8 +49,20 @@ namespace ORA.Tracker.Models.Tests.Unit
              +  "    \"Pierre-Corentin\"\n"
              +  "  ],\n"
              +  "  \"files\": [\n"
-             +  "    \"ORA.exe\",\n"
-             +  "    \"hello.c\"\n"
+             +  "    {\n"
+             +  "      \"hash\": \"123141\",\n"
+             +  "      \"path\": \"ORA\",\n"
+             +  "      \"size\": 42\n"
+             +  "    },\n"
+             +  "    {\n"
+             +  "      \"hash\": \"sfasdf1\",\n"
+             +  "      \"path\": \"hello\",\n"
+             +  "      \"size\": 31415\n"
+             +  "    }\n"
+             +  "  ],\n"
+             +  "  \"invitedIdentities\": [\n"
+             +  "    \"12314\",\n"
+             +  "    \"34525623\"\n"
              +  "  ]\n"
              +  "}"
             );
@@ -93,7 +110,7 @@ namespace ORA.Tracker.Models.Tests.Unit
             var id = Guid.NewGuid();
 
             var testee = new Cluster(id, "", "", Guid.NewGuid().ToString(),
-                new Dictionary<string, string>(), new List<string>(), new List<string>());
+                new Dictionary<string, string>(), new List<string>(), new List<File>(), new List<string>());
 
             testee.SerializeId().Should().Equals(Encoding.UTF8.GetBytes(
                 "{\n"
@@ -117,11 +134,16 @@ namespace ORA.Tracker.Models.Tests.Unit
                 { "4444", "Tats"}
             };
             var admins = new List<string>() { "Leo", "Raffael", "Adam", "Pierre-Corentin" };
-            var files = new List<string>() { "ORA.exe", "hello.c" };
+            var files = new List<File>()
+            {
+                new File("123141", "ORA", 42, new List<string>()),
+                new File("sfasdf1", "hello", 31415, new List<string>())
+            };
+            var invitedIdentities = new List<string>() { "12314", "34525623" };
 
-            var testee = new Cluster(id, name, owner, ownername, members, admins, files);
+            var testee = new Cluster(id, name, owner, ownername, members, admins, files, invitedIdentities);
 
-            Encoding.UTF8.GetString(testee.SerializeWithoutMemberName()).Replace("\r", "").Should().Be(
+            Encoding.UTF8.GetString(testee.SerializePublicInformation()).Replace("\r", "").Should().Be(
                 "{\n"
              + $"  \"id\": \"{id.ToString()}\",\n"
              +  "  \"name\": \"clustername\",\n"
@@ -140,8 +162,8 @@ namespace ORA.Tracker.Models.Tests.Unit
              +  "    \"Pierre-Corentin\"\n"
              +  "  ],\n"
              +  "  \"files\": [\n"
-             +  "    \"ORA.exe\",\n"
-             +  "    \"hello.c\"\n"
+             +  "    \"123141\",\n"
+             +  "    \"sfasdf1\"\n"
              +  "  ]\n"
              +  "}"
             );
@@ -161,7 +183,7 @@ namespace ORA.Tracker.Models.Tests.Unit
             var ownername = "ownername";
 
             var testee = new Cluster(Guid.NewGuid(), "cluster-name", owner, ownername,
-                members, new List<string>(), new List<string>());
+                members, new List<string>(), new List<File>(), new List<string>());
 
             Encoding.UTF8.GetString(testee.SerializeMembers()).Replace("\r", "").Should().Be(
                 "{\n"
@@ -203,7 +225,7 @@ namespace ORA.Tracker.Models.Tests.Unit
             };
 
             var testee = new Cluster(Guid.NewGuid(), "cluster-name", Guid.NewGuid().ToString(), "ownername",
-                new Dictionary<string, string>(), admins, new List<string>());
+                new Dictionary<string, string>(), admins, new List<File>(), new List<string>());
 
             Encoding.UTF8.GetString(testee.SerializeAdmins()).Replace("\r", "").Should().Be(
                 "[\n"

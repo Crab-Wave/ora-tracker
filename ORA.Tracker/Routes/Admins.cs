@@ -20,102 +20,92 @@ namespace ORA.Tracker.Routes
             : base(services) { }
 
         [Authenticate]
+        [RequiredUrlParameters("id")]
         protected override void get(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
+            this.services.TokenManager.RefreshToken(token);
 
-            if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
-            {
-                response.BadRequest(missingClusterId);
-                return;
-            }
-
-            var c = this.services.ClusterManager.Get(request.UrlParameters["id"]);
-            if (c == null)
+            var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (cluster == null)
             {
                 response.NotFound(invalidClusterId);
                 return;
             }
 
-            if (!c.members.ContainsKey(this.services.TokenManager.GetIdFromToken(token)))
+            if (!cluster.HasMember(this.services.TokenManager.GetNodeFromToken(request.Token).id))
             {
                 response.Forbidden(unauthorizedAction);
                 return;
             }
 
-            response.Close(c.SerializeAdmins(), true);
+            response.Close(cluster.SerializeAdmins(), true);
         }
 
         [Authenticate]
+        [RequiredUrlParameters("id")]
         [RequiredQueryParameters("id")]
         protected override void post(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
-            string id = request.QueryString["id"];
-
-            if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
-            {
-                response.BadRequest(missingClusterId);
-                return;
-            }
-
+            string memberId = request.QueryString["id"];
             this.services.TokenManager.RefreshToken(token);
 
-            var c = this.services.ClusterManager.Get(request.UrlParameters["id"]);
-            if (c == null)
+            var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (cluster == null)
             {
                 response.NotFound(invalidClusterId);
                 return;
             }
 
-            if (this.services.TokenManager.GetIdFromToken(token) != c.owner)
+            if (this.services.TokenManager.GetNodeFromToken(request.Token).id != cluster.owner)
             {
                 response.Forbidden(unauthorizedAction);
                 return;
             }
 
-            if (!c.members.ContainsKey(id))     // return error if is not member ?
+            if (!cluster.HasMember(memberId))
             {
                 response.BadRequest(notClusterMember);
                 return;
             }
 
-            c.admins.Add(id);
-            this.services.ClusterManager.Put(request.UrlParameters["id"], c);
+            cluster.admins.Add(memberId);
+            this.services.ClusterManager.Put(cluster);
 
             response.Close();
         }
 
         [Authenticate]
+        [RequiredUrlParameters("id")]
         [RequiredQueryParameters("id")]
         protected override void delete(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
             string adminId = request.QueryString["id"];
-
             this.services.TokenManager.RefreshToken(token);
 
-            var c = this.services.ClusterManager.Get(request.UrlParameters["id"]);
-            if (c == null)
+            var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (cluster == null)
             {
                 response.NotFound(invalidClusterId);
                 return;
             }
 
-            if (this.services.TokenManager.GetIdFromToken(token) != c.owner)
+            if (!cluster.IsOwnedBy(this.services.TokenManager.GetNodeFromToken(request.Token).id))
             {
                 response.Forbidden(unauthorizedAction);
                 return;
             }
 
-            if (!c.admins.Contains(adminId))
+            if (!cluster.HasAdmin(adminId))
             {
                 response.BadRequest(notClusterAdmin);
                 return;
             }
 
-            c.admins.Remove(adminId);
-            this.services.ClusterManager.Put(request.UrlParameters["id"], c);
+            cluster.admins.Remove(adminId);
+            this.services.ClusterManager.Put(cluster);
 
             response.Close();
         }

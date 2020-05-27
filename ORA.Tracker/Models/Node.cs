@@ -1,24 +1,26 @@
-using System;
-using System.Text.Json;
+using System.Collections.Generic;
 
 namespace ORA.Tracker.Models
 {
     public class Node
     {
-        public Guid id { get; set; }
-        public string current_ip { get; set; }
+        public string id { get; set; }
+        public string ip { get; set; }
+        public HashSet<string> FilesOwned { get; set; }
 
-        public Node(string current_ip)
-            : this(Guid.NewGuid(), current_ip) { }
-
-        public Node(Guid id, string current_ip)
+        public Node(string id, string ip, HashSet<string> filesOwned)
         {
             this.id = id;
-            this.current_ip = current_ip;
+            this.ip = ip;
+            this.FilesOwned = filesOwned;
         }
 
-        public override string ToString() => JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+        public Node(string id, string ip)
+            : this(id, ip, new HashSet<string>())
+        {
+        }
 
-        public byte[] ToBytes() => JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions { WriteIndented = true });
+        public bool DoesOwnFile(string hash)
+            => this.FilesOwned.Contains(hash);
     }
 }

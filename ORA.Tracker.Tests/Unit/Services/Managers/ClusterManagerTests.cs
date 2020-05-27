@@ -23,7 +23,7 @@ namespace ORA.Tracker.Services.Managers.Tests.Unit
         {
             var cluster = new Cluster("name", "ownerid", "ownername");
 
-            testee.Put(cluster.id.ToString(), cluster);
+            testee.Put(cluster);
 
             testee.Get(cluster.id.ToString())
                 .Should()
@@ -45,10 +45,10 @@ namespace ORA.Tracker.Services.Managers.Tests.Unit
         {
             var cluster1 = new Cluster("name", "ownerid", "ownername");
 
-            testee.Put(cluster1.id.ToString(), cluster1);
+            testee.Put(cluster1);
             var cluster2 = cluster1;
-            cluster2.files.Add("newfile.txt");
-            testee.Put(cluster2.id.ToString(), cluster2);
+            cluster2.files.Add(new File());
+            testee.Put(cluster2);
 
             testee.Get(cluster1.id.ToString())
                 .Should()
@@ -59,7 +59,7 @@ namespace ORA.Tracker.Services.Managers.Tests.Unit
         public void Delete_WhenClusterExists_ShouldDelete()
         {
             var cluster = new Cluster("name", "ownerid", "ownername");
-            testee.Put(cluster.id.ToString(), cluster);
+            testee.Put(cluster);
 
             testee.Get(cluster.id.ToString())
                 .Should()

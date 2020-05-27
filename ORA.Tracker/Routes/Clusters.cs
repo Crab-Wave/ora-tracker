@@ -31,7 +31,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            response.Close(cluster.SerializeWithoutMemberName(), true);
+            response.Close(cluster.SerializePublicInformation(), true);
         }
 
         [Authenticate]
@@ -42,33 +42,28 @@ namespace ORA.Tracker.Routes
             this.services.TokenManager.RefreshToken(token);
 
             var cluster = new Cluster(request.QueryString["name"],
-                this.services.TokenManager.GetIdFromToken(token), request.QueryString["username"]);
-            this.services.ClusterManager.Put(cluster.id.ToString(), cluster);
+                this.services.TokenManager.GetNodeFromToken(request.Token).id, request.QueryString["username"]);
+            this.services.ClusterManager.Put(cluster);
 
             response.Close(cluster.SerializeId(), true);
         }
 
         [Authenticate]
+        [RequiredUrlParameters("id")]
         protected override void delete(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
 
-            if (request.UrlParameters == null || !request.UrlParameters.ContainsKey("id") || request.UrlParameters["id"] == "")
-            {
-                response.BadRequest(missingClusterId);
-                return;
-            }
-
             this.services.TokenManager.RefreshToken(token);
 
-            var c = this.services.ClusterManager.Get(request.UrlParameters["id"]);
-            if (c == null)
+            var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
+            if (cluster == null)
             {
                 response.NotFound(invalidClusterId);
                 return;
             }
 
-            if (this.services.TokenManager.GetIdFromToken(token) != c.owner)
+            if (!cluster.IsOwnedBy(this.services.TokenManager.GetNodeFromToken(request.Token).id))
             {
                 response.Forbidden(unauthorizedAction);
                 return;

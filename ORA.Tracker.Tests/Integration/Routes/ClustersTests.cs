@@ -12,8 +12,8 @@ namespace ORA.Tracker.Routes.Tests.Integration
 {
     public class ClustersTests
     {
-        private static readonly MockupRouter router;
         private static readonly ServiceCollection services;
+        private static readonly MockupRouter router;
 
         private string token;
 
@@ -26,36 +26,35 @@ namespace ORA.Tracker.Routes.Tests.Integration
         public ClustersTests()
         {
             this.token = services.TokenManager.NewToken();
-            if (!services.TokenManager.IsTokenRegistered(token))
-                services.TokenManager.RegisterToken(Guid.NewGuid().ToString(), token);
+            services.TokenManager.RegisterToken(new Node(Guid.NewGuid().ToString(), "::1"), this.token);
         }
 
         [Fact]
-        public async void WhenGetExistingCluster_ShouldWithMatchingCluster()
+        public async void Get_WhenExistingCluster_ShouldWithMatchingCluster()
         {
             var c = new Cluster("test", Guid.NewGuid().ToString(), "ownerName");
-            services.ClusterManager.Put(c.id.ToString(), c);
+            services.ClusterManager.Put(c);
 
             var response = await router.GetResponseOf(HttpMethod.Get, $"/clusters/{c.id.ToString()}");
 
             response.StatusCode.Should().Be(200);
-            response.Content.ReadAsByteArrayAsync().Result.Should().BeEquivalentTo(c.SerializeWithoutMemberName());
+            response.Content.ReadAsByteArrayAsync().Result.Should().BeEquivalentTo(c.SerializePublicInformation());
         }
 
         [Fact]
-        public async void WhenGetInexistingCluster_ShouldRespondWithNotFound()
+        public async void Get_WhenInexistingCluster_ShouldRespondWithNotFound()
         {
             string inexistingId = "test";
-            string invalidClusterId = new Error("Invalid Cluster id").ToString();
+            string expectedResponseContent = new Error("Invalid Cluster id").ToString();
 
             var response = await router.GetResponseOf(HttpMethod.Get, $"/clusters/{inexistingId}");
 
             response.StatusCode.Should().Be(404);
-            response.Content.ReadAsStringAsync().Result.Should().Be(invalidClusterId);
+            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
         }
 
         [Fact]
-        public async void WhenGetWithoutParameter_ShouldRespondWithAllClusters()
+        public async void Get_WhenNoIdParameter_ShouldRespondWithAllClusters()
         {
             var response = await router.GetResponseOf(HttpMethod.Get, "/clusters");
 
@@ -65,21 +64,26 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void WhenPostWithoutCredentials_ShouldRespondWithBadRequest()
+        public async void Post_WhenMissingCredentials_ShouldRespondWithBadRequest()
         {
-            string missingCredentials = new Error("Missing credentials").ToString();
+            string expectedResponseContent = new Error("Missing credentials").ToString();
 
             var response = await router.GetResponseOf(HttpMethod.Post, "/clusters?name=name");
 
             response.StatusCode.Should().Be(400);
-            response.Content.ReadAsStringAsync().Result.Should().Be(missingCredentials);
+            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
         }
 
         [Fact]
-        public async void WhenPost_ShouldCreateClusterAndRespondWithClusterId()
+        public async void Post_WhenValidCredentials_ShouldCreateClusterAndRespondWithClusterId()
         {
             string clusterName = "test";
-            var response = await router.GetResponseOf(HttpMethod.Post, $"/clusters?name={clusterName}&username=ownername", null, this.token);
+
+            var request = new MockupRouterRequest(HttpMethod.Post, $"/clusters?name={clusterName}&username=ownername")
+            {
+                Credentials = this.token
+            };
+            var response = await router.GetResponseOf(request);
 
             string clusterId = response.Content.ReadAsStringAsync().Result.Split(":")[1].Split("\"")[1].Split("\"")[0];   // TODO: Do this more cleanly
             var c = services.ClusterManager.Get(clusterId);
@@ -88,74 +92,94 @@ namespace ORA.Tracker.Routes.Tests.Integration
         }
 
         [Fact]
-        public async void WhenPostWithoutNameParameter_ShouldRespondWithBadRequest()
+        public async void Post_WhenMissingNameParameter_ShouldRespondWithBadRequest()
         {
-            string missingNameParameter = new Error("Missing query parameter name").ToString();
+            string expectedResponseContent = new Error("Missing query parameter name").ToString();
 
-            var response = await router.GetResponseOf(HttpMethod.Post, "/clusters", null, token);
+            var request = new MockupRouterRequest(HttpMethod.Post, "/clusters")
+            {
+                Credentials = this.token
+            };
+            var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(400);
-            response.Content.ReadAsStringAsync().Result.Should().Be(missingNameParameter);
+            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
         }
 
         [Fact]
-        public async void WhenDeleteWithoutCredentials_ShouldRespondWithBadRequest()
+        public async void Delete_WhenWhenMissingCredentials_ShouldRespondWithBadRequest()
         {
-            string missingCredentials = new Error("Missing credentials").ToString();
+            string expectedResponseContent = new Error("Missing credentials").ToString();
 
             var response = await router.GetResponseOf(HttpMethod.Delete, "/clusters/id");
 
             response.StatusCode.Should().Be(400);
-            response.Content.ReadAsStringAsync().Result.Should().Be(missingCredentials);
+            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
         }
 
         [Fact]
-        public async void WhenDeleteAndUnauthorized_ShouldRespondWithForbidden()
+        public async void Delete_WhenExistingClusterAndUnauthorized_ShouldRespondWithForbidden()
         {
-            string unauthorizedAction = new Error("Unauthorized action").ToString();
+            string expectedResponseContent = new Error("Unauthorized action").ToString();
 
             Cluster c = new Cluster("test", "notsameid", "ownerName");
-            services.ClusterManager.Put(c.id.ToString(), c);
+            services.ClusterManager.Put(c);
 
-            var response = await router.GetResponseOf(HttpMethod.Delete, $"/clusters/{c.id.ToString()}", null, token);
+            var request = new MockupRouterRequest(HttpMethod.Delete, $"/clusters/{c.id.ToString()}")
+            {
+                Credentials = token
+            };
+            var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(403);
-            response.Content.ReadAsStringAsync().Result.Should().Be(unauthorizedAction);
+            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
         }
 
         [Fact]
-        public async void WhenDeleteExistingClusterAndAuthorized_ShouldRespondWithEmptyBody()
+        public async void Delete_WhenExistingClusterAndAuthorized_ShouldRespondWithEmptyBody()
         {
-            Cluster c = new Cluster("test", services.TokenManager.GetIdFromToken(token), "ownerName");
-            services.ClusterManager.Put(c.id.ToString(), c);
+            Cluster c = new Cluster("test", services.TokenManager.GetNodeFromToken(this.token).id, "ownerName");
+            services.ClusterManager.Put(c);
 
-            var response = await router.GetResponseOf(HttpMethod.Delete, $"/clusters/{c.id.ToString()}", null, token);
+            var request = new MockupRouterRequest(HttpMethod.Delete, $"/clusters/{c.id.ToString()}")
+            {
+                Credentials = token
+            };
+            var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(200);
             response.Content.ReadAsByteArrayAsync().Result.Should().BeEmpty();
         }
 
         [Fact]
-        public async void WhenDeleteInexistingCluster_ShouldRespondWithNotFound()
+        public async void Delete_WhenInexistingCluster_ShouldRespondWithNotFound()
         {
             string inexistingId = "test";
-            string invalidClusterId = new Error("Invalid Cluster id").ToString();
+            string expectedResponseContent = new Error("Invalid Cluster id").ToString();
 
-            var response = await router.GetResponseOf(HttpMethod.Delete, $"/clusters/{inexistingId}", null, token);
+            var request = new MockupRouterRequest(HttpMethod.Delete, $"/clusters/{inexistingId}")
+            {
+                Credentials = token
+            };
+            var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(404);
-            response.Content.ReadAsStringAsync().Result.Should().Be(invalidClusterId);
+            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
         }
 
         [Fact]
-        public async void WhenDeleteWithoutClusterId_ShouldRespondWithBadRequest()
+        public async void Delete_WhenMissingClusterId_ShouldRespondWithBadRequest()
         {
-            string missingClusterId = new Error("Missing Cluster id").ToString();
+            string expectedResponseContent = new Error("Missing url parameter id").ToString();
 
-            var response = await router.GetResponseOf(HttpMethod.Delete, "/clusters", null, token);
+            var request = new MockupRouterRequest(HttpMethod.Delete, "/clusters")
+            {
+                Credentials = token
+            };
+            var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(400);
-            response.Content.ReadAsStringAsync().Result.Should().Be(missingClusterId);
+            response.Content.ReadAsStringAsync().Result.Should().Be(expectedResponseContent);
         }
 
         [Fact]

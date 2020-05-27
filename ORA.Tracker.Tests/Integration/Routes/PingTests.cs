@@ -1,4 +1,6 @@
+using System;
 using System.Net.Http;
+using System.Text;
 using Xunit;
 using FluentAssertions;
 
@@ -7,17 +9,22 @@ using ORA.Tracker.Tests.Integration.Utils;
 
 namespace ORA.Tracker.Routes.Tests.Integration
 {
-    public class RootTests
+    public class PingTests
     {
-        private static readonly MockupRouter router = new MockupRouter("/", new Root(null));
+        private static readonly MockupRouter router = new MockupRouter("/", new Ping(null));
 
         [Fact]
-        public async void Get_ShouldRespondWithWelcomeMessage()
+        public async void Post_ShouldRespondWithIdenticalBody()
         {
-            var response = await router.GetResponseOf(HttpMethod.Get, "/");
+            string body = "yeah it's me";
+            var request = new MockupRouterRequest(HttpMethod.Post, "/")
+            {
+                Body = Encoding.UTF8.GetBytes(body)
+            };
+            var response = await router.GetResponseOf(request);
 
             response.StatusCode.Should().Be(200);
-            response.Content.ReadAsStringAsync().Result.Should().Be("Hey welcome to '/'");
+            response.Content.ReadAsStringAsync().Result.Should().Be(body);
         }
 
         [Fact]
@@ -34,7 +41,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         {
             string notFound = new Error("Not Found").ToString();
 
-            var response = await router.GetResponseOf(HttpMethod.Post, "/");
+            var response = await router.GetResponseOf(HttpMethod.Get, "/");
             response.StatusCode.Should().Be(404);
             response.Content.ReadAsStringAsync().Result.Should().Be(notFound);
 

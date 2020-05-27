@@ -30,15 +30,15 @@ namespace ORA.Tracker.Services.Databases
         public byte[] GetAll()
         {
             var iterator = database.CreateIterator();
-            var allClusters = new List<Cluster.ClusterWithoutMemberName>();
+            var allClusters = new List<Cluster.PublicCluster>();
 
             for (iterator.SeekToFirst(); iterator.IsValid(); iterator.Next())
             {
                 Cluster c = Cluster.Deserialize(this.Get(Encoding.UTF8.GetBytes(iterator.KeyAsString())));
-                allClusters.Add(new Cluster.ClusterWithoutMemberName(c));
+                allClusters.Add(new Cluster.PublicCluster(c));
             }
 
-            return JsonSerializer.SerializeToUtf8Bytes<List<Cluster.ClusterWithoutMemberName>>(allClusters, new JsonSerializerOptions { WriteIndented = true });
+            return JsonSerializer.SerializeToUtf8Bytes<List<Cluster.PublicCluster>>(allClusters, new JsonSerializerOptions { WriteIndented = true });
         }
 
         public void Put(byte[] key, byte[] cluster)

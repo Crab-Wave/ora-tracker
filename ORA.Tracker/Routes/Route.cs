@@ -53,6 +53,8 @@ namespace ORA.Tracker.Routes
             {
                 if (attributes is RequiredQueryParameters)
                     handlers.Add(new HttpRequestHandler((attributes as RequiredQueryParameters).GetHandler(), null));
+                else if (attributes is RequiredUrlParameters)
+                    handlers.Add(new HttpRequestHandler((attributes as RequiredUrlParameters).GetHandler(), null));
                 else if (attributes is Authenticate)
                     handlers.Add(new HttpRequestHandler((attributes as Authenticate).GetHandler(this.services), null));
 
