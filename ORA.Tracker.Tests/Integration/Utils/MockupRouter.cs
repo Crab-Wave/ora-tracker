@@ -17,8 +17,6 @@ namespace ORA.Tracker.Tests.Integration.Utils
         private Router router;
         private Route route;
 
-        public string ClientIp { get; set; }
-
         public MockupRouter(string path, Route route)
         {
             this.listenerUri = $"http://localhost:{port++}";
@@ -26,7 +24,6 @@ namespace ORA.Tracker.Tests.Integration.Utils
             this.router = new Router();
             this.router.RegisterRoute(path, route);
             this.route = route;
-            this.ClientIp = null;
 
             if (!this.listener.IsListening)
                 this.listener.Start();

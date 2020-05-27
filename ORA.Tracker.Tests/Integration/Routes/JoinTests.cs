@@ -25,7 +25,8 @@ namespace ORA.Tracker.Routes.Tests.Integration
 
         public JoinTests()
         {
-            this.token = services.TokenManager.RegisterNode(Guid.NewGuid().ToString(), router.ClientIp);
+            this.token = services.TokenManager.NewToken();
+            services.TokenManager.RegisterToken(new Node(Guid.NewGuid().ToString(), "::1"), this.token);
         }
 
         [Fact]
@@ -86,7 +87,7 @@ namespace ORA.Tracker.Routes.Tests.Integration
         [Fact]
         public async void Post_WhenAlreadyMember_ShouldRespondWithOk()
         {
-            var cluster = new Cluster("testcluster", services.TokenManager.GetIdFromIp(router.ClientIp), "ownername");
+            var cluster = new Cluster("testcluster", services.TokenManager.GetNodeFromToken(this.token).id, "ownername");
             services.ClusterManager.Put(cluster);
 
             var request = new MockupRouterRequest(HttpMethod.Post, $"/clusters/{cluster.id.ToString()}/join?username=hey")
@@ -105,7 +106,8 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string expectedResponseContent = new Error("Not allowed to join this cluster").ToString();
 
             string ownerId = Guid.NewGuid().ToString();
-            string token = services.TokenManager.RegisterNode(ownerId, "[::1]:42");
+            string token = services.TokenManager.NewToken();
+            services.TokenManager.RegisterToken(new Node(ownerId, "[::1]:42"), token);
             var cluster = new Cluster("testcluster", ownerId, "ownername");
             services.ClusterManager.Put(cluster);
 
@@ -125,9 +127,10 @@ namespace ORA.Tracker.Routes.Tests.Integration
             string expectedResponseContent = new Error("Not allowed to join this cluster").ToString();
 
             string ownerId = Guid.NewGuid().ToString();
-            string token = services.TokenManager.RegisterNode(ownerId, "[::1]:42");
+            string token = services.TokenManager.NewToken();
+            services.TokenManager.RegisterToken(new Node(ownerId, "[::1]:42"), token);
             var cluster = new Cluster("testcluster", ownerId, "ownername");
-            cluster.invitedIdentities.Add(services.TokenManager.GetIdFromIp(router.ClientIp));
+            cluster.invitedIdentities.Add(services.TokenManager.GetNodeFromToken(this.token).id);
             services.ClusterManager.Put(cluster);
 
             var request = new MockupRouterRequest(HttpMethod.Post, $"/clusters/{cluster.id.ToString()}/join?username=hey")
