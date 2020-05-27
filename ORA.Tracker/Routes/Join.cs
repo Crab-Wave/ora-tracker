@@ -30,7 +30,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            string id = this.services.TokenManager.GetIdFromIp(request.Ip);
+            string id = this.services.TokenManager.GetNodeFromToken(request.Token).id;
             if (cluster.HasMember(id))
             {
                 response.Close();

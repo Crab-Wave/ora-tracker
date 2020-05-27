@@ -33,7 +33,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            if (!cluster.HasMember(this.services.TokenManager.GetIdFromIp(request.Ip)))
+            if (!cluster.HasMember(this.services.TokenManager.GetNodeFromToken(request.Token).id))
             {
                 response.Forbidden(unauthorizedAction);
                 return;
@@ -54,7 +54,7 @@ namespace ORA.Tracker.Routes
         protected override void post(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
-            string id = this.services.TokenManager.GetIdFromIp(request.Ip);
+            string id = this.services.TokenManager.GetNodeFromToken(request.Token).id;
             this.services.TokenManager.RefreshToken(token);
 
             var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
@@ -83,7 +83,7 @@ namespace ORA.Tracker.Routes
             }
 
             cluster.AddFile(id, file);
-            this.services.NodeManager.AddFileOwned(id, file.hash);
+            this.services.NodeManager.AddFileOwned(request.Ip, file.hash);
             this.services.ClusterManager.Put(cluster);
 
             response.Close();
@@ -105,7 +105,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            string userId = this.services.TokenManager.GetIdFromIp(request.Ip);
+            string userId = this.services.TokenManager.GetNodeFromToken(request.Token).id;
             if (userId != cluster.owner && !cluster.admins.Contains(userId))
             {
                 response.Forbidden(unauthorizedAction);

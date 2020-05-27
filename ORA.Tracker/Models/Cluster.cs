@@ -2,7 +2,6 @@ using System;
 using System.Text.Json;
 using System.Linq;
 using System.Collections.Generic;
-
 using ORA.Tracker.Services.Managers;
 
 namespace ORA.Tracker.Models
@@ -19,7 +18,8 @@ namespace ORA.Tracker.Models
 
         public Cluster() { }
 
-        public Cluster(Guid id, string name, string owner, string ownerName, Dictionary<string, string> members, List<string> admins, List<File> files, List<string> invitedIdentities)
+        public Cluster(Guid id, string name, string owner, string ownerName, Dictionary<string, string> members,
+            List<string> admins, List<File> files, List<string> invitedIdentities)
         {
             this.id = id;
             this.name = name;
@@ -34,7 +34,10 @@ namespace ORA.Tracker.Models
         }
 
         public Cluster(string name, string owner, string ownerName)
-            : this(Guid.NewGuid(), name, owner, ownerName, new Dictionary<string, string>(), new List<string>(), new List<File>(), new List<string>()) { }
+            : this(Guid.NewGuid(), name, owner, ownerName, new Dictionary<string, string>(), new List<string>(),
+                new List<File>(), new List<string>())
+        {
+        }
 
         public bool IsOwnedBy(string id)
             => this.owner == id;
@@ -80,21 +83,32 @@ namespace ORA.Tracker.Models
 
             foreach (var id in this.members.Keys)
             {
-                if (nodeManager.IsNodeOwningFile(id, hash))
-                    fileOwners.Add(new Node(id, nodeManager.GetIp(id)));
+                foreach (Node node in nodeManager.GetNodes(id))
+                    if (node.DoesOwnFile(hash))
+                        fileOwners.Add(node);
             }
 
             return fileOwners;
         }
 
-        public byte[] Serialize() => JsonSerializer.SerializeToUtf8Bytes<Cluster>(this, new JsonSerializerOptions { WriteIndented = true });
+        public byte[] Serialize() =>
+            JsonSerializer.SerializeToUtf8Bytes<Cluster>(this, new JsonSerializerOptions {WriteIndented = true});
+
         public static Cluster Deserialize(byte[] jsonBytes) => JsonSerializer.Deserialize<Cluster>(jsonBytes);
 
         public byte[] SerializePublicInformation() =>
-            JsonSerializer.SerializeToUtf8Bytes<PublicCluster>(new PublicCluster(this), new JsonSerializerOptions { WriteIndented = true });
-        public byte[] SerializeId() => JsonSerializer.SerializeToUtf8Bytes<Id>(new Id(this.id), new JsonSerializerOptions { WriteIndented = true });
-        public byte[] SerializeMembers() => JsonSerializer.SerializeToUtf8Bytes<Members>(new Members(this.members), new JsonSerializerOptions { WriteIndented = true });
-        public byte[] SerializeAdmins() => JsonSerializer.SerializeToUtf8Bytes<List<string>>(this.admins, new JsonSerializerOptions { WriteIndented = true });
+            JsonSerializer.SerializeToUtf8Bytes<PublicCluster>(new PublicCluster(this),
+                new JsonSerializerOptions {WriteIndented = true});
+
+        public byte[] SerializeId() =>
+            JsonSerializer.SerializeToUtf8Bytes<Id>(new Id(this.id), new JsonSerializerOptions {WriteIndented = true});
+
+        public byte[] SerializeMembers() => JsonSerializer.SerializeToUtf8Bytes<Members>(new Members(this.members),
+            new JsonSerializerOptions {WriteIndented = true});
+
+        public byte[] SerializeAdmins() =>
+            JsonSerializer.SerializeToUtf8Bytes<List<string>>(this.admins,
+                new JsonSerializerOptions {WriteIndented = true});
 
         public struct PublicCluster
         {

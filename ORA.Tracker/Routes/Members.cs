@@ -1,5 +1,4 @@
 using System.Net;
-
 using ORA.Tracker.Http;
 using ORA.Tracker.Services;
 using ORA.Tracker.Models;
@@ -14,7 +13,9 @@ namespace ORA.Tracker.Routes
         private static readonly byte[] unauthorizedAction = new Error("Unauthorized action").ToBytes();
 
         public Members(IServiceCollection services)
-            : base(services) { }
+            : base(services)
+        {
+        }
 
         [Authenticate]
         [RequiredUrlParameters("id")]
@@ -30,7 +31,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            if (!cluster.HasMember(this.services.TokenManager.GetIdFromIp(request.Ip)))
+            if (!cluster.HasMember(this.services.TokenManager.GetNodeFromToken(request.Token).id))
             {
                 response.Forbidden(unauthorizedAction);
                 return;
@@ -55,7 +56,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            string userId = this.services.TokenManager.GetIdFromIp(request.Ip);
+            string userId = this.services.TokenManager.GetNodeFromToken(request.Token).id;
             if (!cluster.IsOwnedBy(userId) && !cluster.HasAdmin(userId))
             {
                 response.Forbidden(unauthorizedAction);
@@ -87,7 +88,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            string userId = this.services.TokenManager.GetIdFromIp(request.Ip);
+            string userId = this.services.TokenManager.GetNodeFromToken(request.Token).id;
             if (!cluster.IsOwnedBy(userId) && !cluster.HasAdmin(userId))
             {
                 response.Forbidden(unauthorizedAction);

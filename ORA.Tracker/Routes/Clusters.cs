@@ -42,7 +42,7 @@ namespace ORA.Tracker.Routes
             this.services.TokenManager.RefreshToken(token);
 
             var cluster = new Cluster(request.QueryString["name"],
-                this.services.TokenManager.GetIdFromIp(request.Ip), request.QueryString["username"]);
+                this.services.TokenManager.GetNodeFromToken(request.Token).id, request.QueryString["username"]);
             this.services.ClusterManager.Put(cluster);
 
             response.Close(cluster.SerializeId(), true);
@@ -63,7 +63,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            if (!cluster.IsOwnedBy(this.services.TokenManager.GetIdFromIp(request.Ip)))
+            if (!cluster.IsOwnedBy(this.services.TokenManager.GetNodeFromToken(request.Token).id))
             {
                 response.Forbidden(unauthorizedAction);
                 return;

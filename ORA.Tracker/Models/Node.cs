@@ -16,6 +16,11 @@ namespace ORA.Tracker.Models
         }
 
         public Node(string id, string ip)
-            : this(id, ip, new HashSet<string>()) { }
+            : this(id, ip, new HashSet<string>())
+        {
+        }
+
+        public bool DoesOwnFile(string hash)
+            => this.FilesOwned.Contains(hash);
     }
 }

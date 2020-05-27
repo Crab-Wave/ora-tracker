@@ -2,7 +2,6 @@ using System;
 using System.Net;
 using System.Text.Json;
 using System.Collections.Generic;
-
 using ORA.Tracker.Http;
 using ORA.Tracker.Services;
 using ORA.Tracker.Routes.Attributes;
@@ -17,14 +16,16 @@ namespace ORA.Tracker.Routes
         private static readonly byte[] invalidFormat = new Error("Invalid body format").ToBytes();
 
         public FilesOwned(IServiceCollection services)
-            : base(services) { }
+            : base(services)
+        {
+        }
 
         [Authenticate]
         [RequiredUrlParameters("id")]
         protected override void post(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
             string token = request.Token;
-            string id = this.services.TokenManager.GetIdFromIp(request.Ip);
+            string id = this.services.TokenManager.GetNodeFromToken(request.Token).id;
             this.services.TokenManager.RefreshToken(token);
 
             var cluster = this.services.ClusterManager.Get(request.UrlParameters["id"]);
@@ -51,7 +52,7 @@ namespace ORA.Tracker.Routes
                 return;
             }
 
-            this.services.NodeManager.AddFilesOwned(id, filesOwned);
+            this.services.NodeManager.AddFilesOwned(request.Ip, filesOwned);
 
             response.Close();
         }

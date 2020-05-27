@@ -19,6 +19,7 @@ namespace ORA.Tracker
             this.port = port;
             this.listener = new HttpListener();
             this.listener.Prefixes.Add($"http://localhost:{port.ToString()}/");
+            this.listener.Prefixes.Add($"http://+:{port.ToString()}/");
 
             this.router = new Router();
         }

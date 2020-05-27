@@ -15,7 +15,8 @@ namespace ORA.Tracker.Routes
         [Authenticate]
         protected override void delete(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
-            this.services.TokenManager.RemoveNode(this.services.TokenManager.GetIdFromIp(request.Ip), request.Ip);
+            this.services.TokenManager.RemoveToken(request.Token);
+            this.services.NodeManager.Remove(request.Ip);
 
             response.Close();
         }

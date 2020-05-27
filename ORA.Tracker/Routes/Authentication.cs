@@ -3,7 +3,6 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Linq;
-
 using ORA.Tracker.Http;
 using ORA.Tracker.Services;
 using ORA.Tracker.Models;
@@ -16,7 +15,9 @@ namespace ORA.Tracker.Routes
         private static readonly byte[] invalidKeyStructure = new Error("Invalid key structure").ToBytes();
 
         public Authentication(IServiceCollection services)
-            : base(services) { }
+            : base(services)
+        {
+        }
 
         protected override void post(HttpRequest request, HttpListenerResponse response, HttpRequestHandler next)
         {
@@ -38,13 +39,22 @@ namespace ORA.Tracker.Routes
             string token;
             byte[] encryptedToken;
 
-            if (this.services.TokenManager.IsNodeRegistered(id, request.Ip))
-                token = this.services.TokenManager.GetToken(id, request.Ip);
-            else
-                token = this.services.TokenManager.RegisterNode(id, request.Ip);
+            Node node = this.services.NodeManager.GetNode(request.Ip);
+            if (node == null)
+            {
+                node = new Node(id, request.Ip);
+                this.services.NodeManager.RegisterNode(node);
+            }
 
-            if (this.services.TokenManager.IsTokenExpired(token))
-                token = this.services.TokenManager.UpdateToken(id, request.Ip);
+            if (this.services.TokenManager.IsRegistered(node))
+                token = this.services.TokenManager.GetTokenFromNode(node);
+            else
+                token = this.services.TokenManager.NewToken();
+
+            if (!this.services.TokenManager.IsTokenRegistered(token))
+                this.services.TokenManager.RegisterToken(node, token);
+            else if (this.services.TokenManager.IsTokenExpired(token))
+                this.services.TokenManager.UpdateToken(node, token);
 
             try
             {

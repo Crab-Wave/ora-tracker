@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using ORA.Tracker.Models;
 
 namespace ORA.Tracker.Services.Managers
@@ -12,31 +14,32 @@ namespace ORA.Tracker.Services.Managers
             this.nodes = new Dictionary<string, Node>();
         }
 
+        public Node GetNode(string ip) => this.nodes.GetValueOrDefault(ip, null);
+
         public void RegisterNode(Node node)
-            => this.nodes[node.id] = node;
+            => this.nodes[node.ip] = node;
 
-        public void UpdateIp(string id, string ip)
-            => this.nodes[id].ip = ip;
+        public void UpdateIp(string oldIp, string newIp)
+        {
+            Node node = this.nodes[oldIp];
+            node.id = newIp;
+            this.Remove(oldIp);
+            this.RegisterNode(node);
+        }
 
-        public void AddFilesOwned(string id, HashSet<string> files)
-            => this.nodes[id].FilesOwned.UnionWith(files);
+        public void AddFilesOwned(string ip, HashSet<string> files)
+            => this.nodes[ip].FilesOwned.UnionWith(files);
 
-        public bool AddFileOwned(string id, string hash)
-            => this.nodes[id].FilesOwned.Add(hash);
+        public bool AddFileOwned(string ip, string hash)
+            => this.nodes[ip].FilesOwned.Add(hash);
 
-        public Node GetNode(string id)
-            => this.nodes[id];
+        public Node[] GetNodes(string id)
+            => this.nodes.Values.Where(node => node.id.Equals(id)).ToArray();
 
-        public string GetIp(string id)
-            => this.nodes[id].ip;
+        public void Remove(string ip)
+            => this.nodes.Remove(ip);
 
-        public void Remove(string id)
-            => this.nodes.Remove(id);
-
-        public bool IsNodeRegistered(string id)
-            => this.nodes.ContainsKey(id);
-
-        public bool IsNodeOwningFile(string id, string hash)
-            => this.nodes[id].FilesOwned.Contains(hash);
+        public bool IsNodeRegistered(string ip)
+            => this.nodes.ContainsKey(ip);
     }
 }
