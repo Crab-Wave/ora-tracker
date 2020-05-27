@@ -92,23 +92,23 @@ namespace ORA.Tracker.Models
         }
 
         public byte[] Serialize() =>
-            JsonSerializer.SerializeToUtf8Bytes<Cluster>(this, new JsonSerializerOptions {WriteIndented = true});
+            JsonSerializer.SerializeToUtf8Bytes<Cluster>(this, new JsonSerializerOptions { WriteIndented = true });
 
         public static Cluster Deserialize(byte[] jsonBytes) => JsonSerializer.Deserialize<Cluster>(jsonBytes);
 
         public byte[] SerializePublicInformation() =>
             JsonSerializer.SerializeToUtf8Bytes<PublicCluster>(new PublicCluster(this),
-                new JsonSerializerOptions {WriteIndented = true});
+                new JsonSerializerOptions { WriteIndented = true });
 
         public byte[] SerializeId() =>
-            JsonSerializer.SerializeToUtf8Bytes<Id>(new Id(this.id), new JsonSerializerOptions {WriteIndented = true});
+            JsonSerializer.SerializeToUtf8Bytes<Id>(new Id(this.id), new JsonSerializerOptions { WriteIndented = true });
 
         public byte[] SerializeMembers() => JsonSerializer.SerializeToUtf8Bytes<Members>(new Members(this.members),
-            new JsonSerializerOptions {WriteIndented = true});
+            new JsonSerializerOptions { WriteIndented = true });
 
         public byte[] SerializeAdmins() =>
             JsonSerializer.SerializeToUtf8Bytes<List<string>>(this.admins,
-                new JsonSerializerOptions {WriteIndented = true});
+                new JsonSerializerOptions { WriteIndented = true });
 
         public struct PublicCluster
         {
