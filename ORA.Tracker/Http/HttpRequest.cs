@@ -20,8 +20,11 @@ namespace ORA.Tracker.Http
         public NameValueCollection QueryString { get => this.request.QueryString; }
         public Dictionary<string, string> UrlParameters { get => urlParameters; }
         public byte[] Body { get => this.body ?? (this.body = this.getBody()); }
-        public string Ip { get => this.request.RemoteEndPoint.Address.ToString(); }
 
+        public string Ip
+        {
+            get => this.Headers.GetValues("X-Forwarded-For")?[0] ?? this.request.RemoteEndPoint.Address.ToString();
+        }
 
         public string Token
         {
